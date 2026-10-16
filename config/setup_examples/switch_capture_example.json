@@ -1,0 +1,16 @@
+{
+    "name": "Nintendo Switch Capture Setup",
+    "description": "Setup for Nintendo Switch with Elgato Game Capture HD60S Pro",
+    "hardware": {
+        "connector_box": "elgato_game_capture",
+        "capture_method": "passthrough",
+        "input_device": "switch",
+        "output_device": "tv"
+    },
+    "settings": {
+        "resolution": "1080p",
+        "frame_rate": 60,
+        "video_quality": "high",
+        "audio_enabled": false
+    }
+}

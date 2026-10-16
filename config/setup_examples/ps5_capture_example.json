@@ -1,0 +1,16 @@
+{
+    "name": "PlayStation 5 Capture Setup",
+    "description": "Setup for PlayStation 5 with USB capture card",
+    "hardware": {
+        "connector_box": "generic_usb_capture",
+        "capture_method": "splitter",
+        "input_device": "ps5",
+        "output_device": "tv"
+    },
+    "settings": {
+        "resolution": "1440p",
+        "frame_rate": 120,
+        "video_quality": "ultra",
+        "audio_enabled": true
+    }
+}

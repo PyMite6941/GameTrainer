@@ -1,0 +1,33 @@
+{
+    "hardware": {
+        "capture_card_type": "auto",
+        "video_format": "1080p60",
+        "frame_rate": 60,
+        "resolution": "1920x1080",
+        "color_space": "BGR",
+        "flip_enabled": false
+    },
+    "processing": {
+        "frame_skip": 1,
+        "brightness_adjustment": 1.0,
+        "contrast_adjustment": 1.0,
+        "sharpness_adjustment": 1.0,
+        "noise_reduction": true
+    },
+    "roi": {
+        "enabled": true,
+        "coordinates": {
+            "x1": 400,
+            "y1": 300,
+            "x2": 800,
+            "y2": 500
+        }
+    },
+    "console_support": {
+        "nintendo_switch": true,
+        "playstation_4": true,
+        "playstation_5": true,
+        "xbox_one": true,
+        "xbox_series_x": true
+    }
+}
