@@ -1,0 +1,81 @@
+{
+  "name": "Mario Kart 8 Deluxe",
+  "console": "nintendo_switch",
+  "description": "Kart racer: track karts by body color and read lap/position from the HUD.",
+  "capture": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "downscale_width": 1280,
+    "process_every_n_frames": 2,
+    "color_space": "BGR",
+    "roi": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "ocr_every_n_frames": 15
+  },
+  "entities": [
+    {
+      "name": "player_kart",
+      "method": "color",
+      "player_id": "p1",
+      "primary": true,
+      "color_bgr": [
+        0,
+        120,
+        220
+      ],
+      "min_area": 100,
+      "min_sat": 50,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "car"
+    },
+    {
+      "name": "rival_kart",
+      "method": "color",
+      "player_id": "p2",
+      "primary": false,
+      "color_bgr": [
+        220,
+        40,
+        40
+      ],
+      "min_area": 100,
+      "min_sat": 50,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "car"
+    }
+  ],
+  "templates": [],
+  "hud_zones": [
+    {
+      "name": "lap",
+      "entity": "lap",
+      "bbox": [
+        600,
+        20,
+        700,
+        55
+      ],
+      "label": "current lap"
+    },
+    {
+      "name": "position",
+      "entity": "race_position",
+      "bbox": [
+        580,
+        620,
+        700,
+        690
+      ],
+      "label": "race position (1st-8th)"
+    }
+  ],
+  "notes": "Kart body colors vary by character/vehicle. Sample the dominant body color of each kart (BGR order) and set color_bgr; hue_tolerance 8-15 keeps karts of different colors apart. The measured body color is stored as each player's car; add \"car\": \"<vehicle>\" and/or \"skin\": \"<driver>\" to label them explicitly."
+}

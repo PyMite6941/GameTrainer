@@ -1,2 +1,1 @@
-# # Drivers Module
-# Contains drivers for different hardware devices.
+"""Drivers: capture-card mode discovery and splitter setup."""

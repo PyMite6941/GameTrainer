@@ -1,0 +1,15 @@
+{
+  "device": {
+    "index": 0,
+    "note": "Cheap USB 2 HDMI capture stick behind an HDMI splitter (no passthrough). These deliver MJPG 1080p30 or 720p60. Copy to config/device_config.json."
+  },
+  "capture": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "fourcc": "MJPG",
+    "downscale_width": 1280,
+    "process_every_n_frames": 1,
+    "detect_scale": 0.5
+  }
+}

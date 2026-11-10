@@ -1,0 +1,15 @@
+{
+  "device": {
+    "index": 0,
+    "note": "Passthrough capture card on USB 3 (Elgato HD60 S/S+, AVerMedia Live Gamer, generic 4K-passthrough cards). Copy to config/device_config.json."
+  },
+  "capture": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 60,
+    "fourcc": "MJPG",
+    "downscale_width": 1280,
+    "process_every_n_frames": 2,
+    "detect_scale": 0.5
+  }
+}

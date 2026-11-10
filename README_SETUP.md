@@ -1,45 +1,48 @@
-# GameTrainer Hardware Middleware Setup
+# GameTrainer Middleware Setup
 
-## Overview
-This setup guide provides instructions for configuring the GameTrainer system to capture console gameplay using HDMI Passthrough or Splitter Box hardware.
+The short version. Full guides are in [`docs/`](docs/index.md).
 
-## Quick Installation
+## 1. Install
 
-1. **Install Dependencies:**
-   ```bash
-   python install_middleware.py
-   ```
+```bash
+python3 install_middleware.py        # --ocr for HUD text, --binary for dist/gametrainer
+source .venv/bin/activate
+```
 
-2. **Connect Hardware:**
-   - Console → Capture Card HDMI In
-   - Capture Card → TV HDMI Out  
-   - Capture Card → Computer USB 3.0
+This creates `.venv`, installs GameTrainer, runs `gametrainer --check`, and runs the 42-check
+verification. It never overwrites your files and never uses sudo.
 
-3. **Configure Settings:**
-   - Edit `config/middleware_config.json`
-   - Adjust Region of Interest coordinates
-   - Set appropriate frame rate and resolution
+## 2. Connect the hardware
 
-4. **Run the System:**
-   ```bash
-   cd GameTrainer
-   python main.py
-   ```
+```bash
+gametrainer --wiring switch          # or ps5, ps4, xbox
+```
 
-## Hardware Options
+Console HDMI Out → capture card HDMI In → card HDMI Out → TV. Card USB → laptop USB 3 port.
+PS4/PS5: turn HDCP off. Switch: docked only. No passthrough on your device? The same command
+also describes the splitter setup.
 
-### Option A: USB Capture Card with Passthrough
-**Recommended:** Elgato Game Capture HD60S Pro or equivalent
+## 3. Point GameTrainer at the card
 
-### Option B: HDMI Splitter + USB Capture Stick
-**Alternative:** Separate splitter and capture device
+```bash
+gametrainer --list-devices --save    # finds the card and saves its index
+gametrainer --check                  # USB 3? right index? best capture mode?
+```
 
-## Troubleshooting
+Ready-made device configs (passthrough card, USB 2 stick, slow laptop) are in
+`config/setup_examples/`.
 
-- **No Video Detected:** Check all connections and drivers
-- **Lag in Gameplay:** Use high-quality capture card
-- **Video Quality Issues:** Adjust brightness/contrast in settings
-- **Audio Problems:** Ensure audio cable is properly connected
+## 4. Tune the game profile
 
-## Support
-For support, refer to the documentation in the `docs/` directory or contact support.
+```bash
+gametrainer smash --calibrate        # click each player, paste color_bgr into the profile
+```
+
+## 5. Play and review
+
+```bash
+gametrainer smash --build-replay --stats --view
+```
+
+See [`docs/MIDDLEWARE.md`](docs/MIDDLEWARE.md) for how the pieces fit together and
+[`docs/CLI.md`](docs/CLI.md) for every option.

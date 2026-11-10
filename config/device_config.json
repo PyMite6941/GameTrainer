@@ -1,0 +1,19 @@
+{
+  "device": {
+    "index": 0,
+    "note": "Video device index of the USB HDMI capture card. Find it with `gametrainer --list-devices`. Reassign per machine, or override with --device."
+  },
+  "capture": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 60,
+    "fourcc": "MJPG",
+    "downscale_width": 1280,
+    "process_every_n_frames": 2,
+    "detect_scale": 0.5,
+    "note": "width/height/fps/fourcc are requested from the capture card (MJPG lets 1080p60 fit over USB). downscale_width, process_every_n_frames and detect_scale are machine limits: they can only make a game profile lighter, never heavier."
+  },
+  "ports": {
+    "note": "No network ports are used - capture is local over USB."
+  }
+}

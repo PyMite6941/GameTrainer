@@ -1,2 +1,1 @@
-# # Analysis Module
-# Contains modules for processing and analyzing gameplay video.
+"""Analysis: detection on frames, replays and stats from the stored data points."""

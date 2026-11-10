@@ -1,3 +1,1 @@
-# Capture Module
-
-# Core capture functionality for handling video input from consoles.
+"""Capture: getting frames from the console (capture card or video file)."""

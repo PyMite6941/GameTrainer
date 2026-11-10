@@ -1,2 +1,1 @@
-# # Adapters Module
-# Contains hardware adapters for different connector types.
+"""Adapters: how each console and connection type plugs into the capture chain."""
