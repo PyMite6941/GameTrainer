@@ -48,6 +48,3 @@ Run a profile by path, filename, or short name: `gametrainer smash`, `gametraine
 | `data/replays/replay.json` | The latest replay you built |
 | `data/test/synthetic_game.mp4` | The generated test match (`--synthetic`) |
 | `data/opponent_profile.json`, `profiles/` | Analyzer and play-style profiles |
-
-`config/middleware_config.json` belongs to the older demo system (`main.py`). The tracker
-doesn't read it; `device_config.json` is the tracker's config.
