@@ -1,2 +1,1 @@
-# # Simulation Module
-# Contains modules for simulating gameplay based on captured data.
+"""Simulation: replay playback (interpolated states and the pygame viewer)."""

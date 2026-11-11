@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gametrainer"
+version = "1.2.0"
+description = "CPU-only console gameplay tracker and data-point replay trainer (Leetify model)"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "pymite6941" }]
+license = { text = "MIT" }
+dependencies = [
+    "numpy",
+    "opencv-python",
+    "pygame",
+    "pandas",
+]
+
+[project.optional-dependencies]
+ocr = ["pytesseract"]
+build = ["pyinstaller"]
+
+[project.scripts]
+gametrainer = "track_game:main"
+
+[tool.setuptools]
+py-modules = ["track_game"]
+
+[tool.setuptools.packages.find]
+include = ["middleware*", "hardware_tools*", "config*"]
+exclude = ["tests*", "docs*", "*.egg-info*"]
+
+[tool.setuptools.package-data]
+config = ["*.json", "games/*.json", "games/*.png", "setup_examples/*.json"]

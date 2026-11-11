@@ -1,0 +1,81 @@
+{
+  "name": "Super Smash Bros. Ultimate",
+  "console": "nintendo_switch",
+  "description": "Platform fighter: track both players by color and read damage % from the HUD.",
+  "capture": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "downscale_width": 1280,
+    "process_every_n_frames": 2,
+    "color_space": "BGR",
+    "roi": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "ocr_every_n_frames": 15
+  },
+  "entities": [
+    {
+      "name": "player_1",
+      "method": "color",
+      "player_id": "p1",
+      "primary": true,
+      "color_bgr": [
+        0,
+        200,
+        0
+      ],
+      "min_area": 150,
+      "min_sat": 60,
+      "min_val": 60,
+      "hue_tolerance": 12,
+      "appearance": "skin"
+    },
+    {
+      "name": "opponent",
+      "method": "color",
+      "player_id": "p2",
+      "primary": false,
+      "color_bgr": [
+        0,
+        0,
+        200
+      ],
+      "min_area": 150,
+      "min_sat": 60,
+      "min_val": 60,
+      "hue_tolerance": 12,
+      "appearance": "skin"
+    }
+  ],
+  "templates": [],
+  "hud_zones": [
+    {
+      "name": "damage_p1",
+      "entity": "damage_p1",
+      "bbox": [
+        120,
+        15,
+        320,
+        70
+      ],
+      "label": "P1 damage percent"
+    },
+    {
+      "name": "damage_p2",
+      "entity": "damage_p2",
+      "bbox": [
+        940,
+        15,
+        1140,
+        70
+      ],
+      "label": "P2 damage percent"
+    }
+  ],
+  "notes": "Tune color_bgr by sampling each character's main costume color from a screenshot (BGR order). hue_tolerance is on OpenCV's 0-179 hue wheel: 8-15 keeps similar colors apart. Set \"skin\": \"<character>\" on an entity to label it explicitly; otherwise the measured costume color is stored as its skin. Templates are optional: put cropped character PNGs next to this file and add entities with method 'template'."
+}

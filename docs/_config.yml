@@ -1,0 +1,5 @@
+title: GameTrainer
+description: CPU-only console gameplay tracker and data-point replay trainer (the Leetify model for any console game)
+theme: jekyll-theme-cayman
+exclude:
+  - "__init__.py"

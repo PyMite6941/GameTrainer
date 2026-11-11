@@ -1,2 +1,1 @@
-# # Integration Module
-# Integrates middleware components with the GameTrainer system.
+"""Integration: config discovery, the tracking pipeline, and system checks."""

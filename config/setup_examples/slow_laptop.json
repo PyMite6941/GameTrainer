@@ -1,0 +1,15 @@
+{
+  "device": {
+    "index": 0,
+    "note": "For older or very busy laptops: lighter processing. Tracks 20 frames/s at 60 fps capture. Copy to config/device_config.json."
+  },
+  "capture": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 60,
+    "fourcc": "MJPG",
+    "downscale_width": 960,
+    "process_every_n_frames": 3,
+    "detect_scale": 0.4
+  }
+}

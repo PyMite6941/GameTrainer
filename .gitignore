@@ -21,13 +21,14 @@ sdist/
 var/
 wheels/
 share/python-wheels/
-.egg-info/
+*.egg-info/
 .installed.cfg
 *.egg
 
 # PyInstaller
 *.manifest
 *.spec
+!gametrainer.spec
 
 # Installer logs
 pip-log.txt
@@ -75,3 +76,7 @@ Thumbs.db
 
 # tmp
 tmp/
+
+# GameTrainer generated data
+data/test/
+data/replays/

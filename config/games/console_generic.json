@@ -1,0 +1,32 @@
+{
+  "name": "Generic Console Game",
+  "console": "generic",
+  "description": "Fallback profile for any console game: tracks the largest moving object in the center of the screen. Use when no game-specific profile exists yet.",
+  "capture": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "downscale_width": 1280,
+    "process_every_n_frames": 3,
+    "color_space": "BGR",
+    "roi": [
+      200,
+      120,
+      1080,
+      600
+    ]
+  },
+  "entities": [
+    {
+      "name": "moving_object",
+      "method": "motion",
+      "primary": true,
+      "min_area": 300,
+      "appearance": "skin"
+    }
+  ],
+  "templates": [],
+  "hud_zones": [],
+  "notes": "Start here for an unsupported game, then replace the motion entity with color/template entities tuned to that game's characters and HUD."
+}
