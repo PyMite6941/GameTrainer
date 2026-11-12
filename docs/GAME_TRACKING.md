@@ -1,10 +1,10 @@
-# GameTrainer — Game-Agnostic Console Tracking (CPU-only laptop)
+# GameTrainer — Game-Agnostic Console Tracking (CPU only)
 
 ## The core idea
 
 Leetify improves Counter-Strike 2 players by parsing CS2 demo logs. Consoles (Switch,
 PlayStation, Xbox) expose no demo files or game logs, so there is nothing to parse.
-The generic console equivalent is **screen-capture computer vision**: the laptop watches
+The generic console equivalent is **screen-capture computer vision**: the host device (Raspberry Pi, laptop, or desktop) watches
 the exact same video the player sees on TV and extracts positions, actions, and HUD
 stats from pixels. This repo already had the hardware layer (HDMI capture card +
 passthrough); this adds the game-agnostic tracking layer on top.
@@ -12,17 +12,18 @@ passthrough); this adds the game-agnostic tracking layer on top.
 ## Hardware (any console)
 
 Console dock → HDMI capture card HDMI In → card HDMI Out to TV (passthrough, zero added
-lag) → card USB 3.0 to laptop. The card appears as a UVC webcam device, so
-`cv2.VideoCapture(0)` opens it on the laptop.
+lag) → card USB 3 to the host device. The card appears as a UVC webcam device, so
+`cv2.VideoCapture(0)` opens it on the host. Without passthrough, the host can show the game
+on its own HDMI output instead (`--monitor`).
 
 Notes:
 - **PS5:** disable HDCP (Settings > System > HDMI > turn off Enable HDCP) or the card
   gets a black signal.
 - **Nintendo Switch:** must be docked (docked mode outputs HDMI). Handheld mode has no
   HDMI out; USB-C capture dongles exist but black out the console screen.
-- Laptop needs only a USB 3.0 port — no GPU required.
+- The host (Raspberry Pi 4/5, laptop, or desktop) needs only a USB 3 port; no GPU is required.
 
-## CPU-only tracking pipeline (median laptop device)
+## CPU-only tracking pipeline (Raspberry Pi or typical laptop)
 
 All detection runs on the CPU with OpenCV primitives. What keeps it light:
 
@@ -57,7 +58,15 @@ On a slow machine, raise `process_every_n_frames` to 3 or lower `detect_scale` t
 
 ## Adding a new game (no code changes)
 
-Copy `config/games/console_generic.json` to `config/games/<game>.json` and edit it.
+The quick way:
+
+```bash
+gametrainer --new-game "My Game" --kind fighter --players 2   # or racer, shooter, any
+gametrainer my_game --calibrate                                # click a player, press their number
+```
+
+This writes `config/games/my_game.json`, which you can refine by hand with the fields below.
+You can also copy `config/games/console_generic.json` and edit it.
 
 ### `capture`
 
@@ -109,9 +118,13 @@ gametrainer smash --calibrate               # live picture; click each player
 gametrainer --pick 512,300 --image shot.png # or one pixel of a 1280-wide screenshot
 ```
 
-Each click prints `"color_bgr": [B, G, R]` and the hue. Paste it into the entity. With a
-profile given, `--calibrate` circles what the profile detects right now, so you can check
-the result straight away.
+In the window, press **Space** to freeze the picture, **click** a player, then press their
+**number** (1 = first entity, 2 = second, ...). The color is saved into the profile at once,
+and white circles show what the profile now detects, so you see the result straight away.
+Without a screen, use `gametrainer <game> --pick X,Y --set p1 --image shot.png`.
+
+Edits to a bundled profile, such as when running the binary, are saved as a copy in
+`./config/games/`, which then takes priority over the bundled one.
 
 Then run it. Short names work:
 

@@ -11,7 +11,7 @@ What it does (and never does):
   * creates .venv (unless --no-venv) and installs GameTrainer into it with pip
   * creates data/ and, only if missing, config/device_config.json
   * runs the system check and, if a capture card is connected, offers to save its index
-  * runs the 42-check end-to-end verification (skip with --skip-verify)
+  * runs the 50-check end-to-end verification (skip with --skip-verify)
   * never overwrites existing files, never uses sudo - it prints the system
     commands (apt, usermod) for you to run instead
 """

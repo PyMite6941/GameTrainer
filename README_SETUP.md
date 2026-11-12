@@ -1,6 +1,13 @@
-# GameTrainer Middleware Setup
+# GameTrainer Setup
 
-The short version. Full guides are in [`docs/`](docs/index.md).
+The short version. Step by step, with example output: [docs/TUTORIAL.md](docs/TUTORIAL.md).
+
+## You need
+
+- **A host device:** Raspberry Pi 4/5 (official power supply), laptop, or desktop with a
+  **USB 3 port**, and an HDMI out if it drives the screen
+- An HDMI capture card (with HDMI Out for passthrough, ideally)
+- Your console and a TV
 
 ## 1. Install
 
@@ -9,40 +16,23 @@ python3 install_middleware.py        # --ocr for HUD text, --binary for dist/gam
 source .venv/bin/activate
 ```
 
-This creates `.venv`, installs GameTrainer, runs `gametrainer --check`, and runs the 42-check
-verification. It never overwrites your files and never uses sudo.
+This creates `.venv`, installs GameTrainer, checks the host, and runs 50 self-checks. It never
+overwrites your files and never uses sudo.
 
-## 2. Connect the hardware
-
-```bash
-gametrainer --wiring switch          # or ps5, ps4, xbox
-```
-
-Console HDMI Out → capture card HDMI In → card HDMI Out → TV. Card USB → laptop USB 3 port.
-PS4/PS5: turn HDCP off. Switch: docked only. No passthrough on your device? The same command
-also describes the splitter setup.
-
-## 3. Point GameTrainer at the card
+## 2. Guided setup
 
 ```bash
-gametrainer --list-devices --save    # finds the card and saves its index
-gametrainer --check                  # USB 3? right index? best capture mode?
+gametrainer --setup
 ```
 
-Ready-made device configs (passthrough card, USB 2 stick, slow laptop) are in
-`config/setup_examples/`.
+This checks the host, shows how to wire your console, finds the capture card, picks or creates
+your game, and teaches it the players' colors.
 
-## 4. Tune the game profile
-
-```bash
-gametrainer smash --calibrate        # click each player, paste color_bgr into the profile
-```
-
-## 5. Play and review
+## 3. Play and review
 
 ```bash
 gametrainer smash --build-replay --stats --view
+gametrainer smash --monitor --build-replay --stats --view   # if the host drives the TV
 ```
 
-See [`docs/MIDDLEWARE.md`](docs/MIDDLEWARE.md) for how the pieces fit together and
-[`docs/CLI.md`](docs/CLI.md) for every option.
+Every command: [docs/CLI.md](docs/CLI.md). How the pieces fit together: [docs/MIDDLEWARE.md](docs/MIDDLEWARE.md).
