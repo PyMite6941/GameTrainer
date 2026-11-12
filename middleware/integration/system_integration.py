@@ -179,3 +179,103 @@ def run_session(
 
 
 System_Integration = run_session
+
+
+# ------------------------------------------------------------------ profiles
+GAME_KINDS = {
+    "fighter": "Fighting / platform fighter: players tracked by costume color (skin)",
+    "racer": "Racing: karts or cars tracked by body color (car)",
+    "shooter": "Shooter / sports / other: players tracked by team or outfit color (skin)",
+    "any": "Not sure: track whatever moves (no colors needed)",
+}
+
+# Distinct starting colors (BGR) so a new profile works on obvious test footage;
+# calibration replaces them with the real ones.
+_STARTER_COLORS = [[0, 200, 0], [0, 0, 200], [200, 80, 0], [0, 200, 220], [200, 0, 200], [0, 140, 255], [200, 200, 0], [120, 0, 120]]
+
+
+def slugify(name: str) -> str:
+    out = "".join(ch.lower() if ch.isalnum() else "_" for ch in name).strip("_")
+    while "__" in out:
+        out = out.replace("__", "_")
+    return out or "my_game"
+
+
+def user_profile_path(profile_path: Path) -> Path:
+    """Where edits to a profile are saved: the file itself when it is already in
+    ./config/games, otherwise a copy there (never inside the bundled app)."""
+    user_games = (user_dir() / "config" / "games").resolve()
+    if profile_path.resolve().parent == user_games:
+        return profile_path
+    return user_games / profile_path.name
+
+
+def create_profile(name: str, console: str = "generic", kind: str = "fighter", players: int = 2,
+                   overwrite: bool = False) -> Path:
+    """Write a new game profile to ./config/games/<slug>.json and return its path."""
+    kind = kind if kind in GAME_KINDS else "fighter"
+    players = max(1, min(8, int(players)))
+    path = user_dir() / "config" / "games" / f"{slugify(name)}.json"
+    if path.exists() and not overwrite:
+        raise FileExistsError(f"{path} already exists")
+    if kind == "any":
+        entities = [{"name": "moving_object", "player_id": "p1", "method": "motion", "primary": True,
+                     "min_area": 300, "appearance": "skin"}]
+    else:
+        entities = []
+        for i in range(players):
+            entities.append({
+                "name": "player_1" if i == 0 else f"player_{i + 1}",
+                "player_id": f"p{i + 1}",
+                "method": "color",
+                "primary": i == 0,
+                "color_bgr": _STARTER_COLORS[i % len(_STARTER_COLORS)],
+                "hue_tolerance": 12,
+                "min_area": 120,
+                "min_sat": 60,
+                "min_val": 50,
+                "appearance": "car" if kind == "racer" else "skin",
+            })
+    profile = {
+        "name": name,
+        "console": console,
+        "description": GAME_KINDS[kind],
+        "capture": {"resolution": [1920, 1080], "downscale_width": 1280, "process_every_n_frames": 2,
+                    "detect_scale": 0.5, "ocr_every_n_frames": 15, "roi": [0, 0, 1280, 720]},
+        "entities": entities,
+        "templates": [],
+        "hud_zones": [],
+        "notes": "Created by gametrainer --new-game. Run `gametrainer " + slugify(name)
+                 + " --calibrate`, click each player and press their number to set the real colors.",
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(profile, indent=2) + "\n")
+    return path
+
+
+def find_entity(profile_data: Dict[str, Any], key: str) -> Optional[Dict[str, Any]]:
+    """Entity by player_id ('p1'), name ('player_1'), or 1-based number ('1')."""
+    ents = profile_data.get("entities", [])
+    if key.isdigit() and 1 <= int(key) <= len(ents):
+        return ents[int(key) - 1]
+    for e in ents:
+        if key in (e.get("player_id"), e.get("name")):
+            return e
+    return None
+
+
+def set_entity_color(profile_path: Path, key: str, color_bgr: List[int]) -> Path:
+    """Set one entity's color_bgr (switching it to color tracking) and save the profile."""
+    with open(profile_path) as f:
+        data = json.load(f)
+    ent = find_entity(data, key)
+    if ent is None:
+        raise KeyError(f"no entity '{key}' in {profile_path.name}")
+    ent["method"] = "color"
+    ent["color_bgr"] = [int(v) for v in color_bgr]
+    ent.setdefault("hue_tolerance", 12)
+    ent.setdefault("min_area", 120)
+    out = user_profile_path(profile_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(data, indent=2) + "\n")
+    return out

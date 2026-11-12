@@ -1,9 +1,18 @@
 """
 HDMI adapter: how each console connects to the capture chain, and what to set.
 
-    console HDMI Out -> capture card HDMI In
-    capture card HDMI Out -> TV            (passthrough: the TV is your monitor)
-    capture card USB -> laptop USB 3 port  (the laptop records data points)
+The host is the computer GameTrainer runs on: a Raspberry Pi 4/5, a laptop, or a
+desktop with a USB 3 port. Two ways to wire it:
+
+  A. Passthrough (lowest lag, recommended for competitive play)
+     console HDMI Out -> capture card HDMI In
+     capture card HDMI Out -> TV / monitor
+     capture card USB -> host USB 3 port      (the host records data points)
+
+  B. Monitor mode (host drives the screen: `gametrainer <game> --monitor`)
+     console HDMI Out -> capture card HDMI In
+     capture card USB -> host USB 3 port
+     host HDMI Out -> TV / monitor            (~1-3 frames of added lag)
 
 `console_setup("ps5")` returns the steps and settings for one console;
 `wiring_text(console)` renders them for the terminal.
@@ -15,8 +24,9 @@ from typing import Dict, List
 
 CHAIN = [
     "Console HDMI Out -> capture card HDMI In",
-    "Capture card HDMI Out -> TV (passthrough: you play on the TV with no added lag)",
-    "Capture card USB -> laptop USB 3 port (blue port, or marked SS)",
+    "Capture card USB -> host USB 3 port (Raspberry Pi 4/5, laptop or desktop; blue port or marked SS)",
+    "Screen, either:  A) capture card HDMI Out -> TV (passthrough, no added lag), or",
+    "                 B) host HDMI Out -> TV and run with --monitor (the host shows the game; slight lag)",
 ]
 
 CONSOLES: Dict[str, Dict[str, object]] = {
@@ -83,7 +93,9 @@ def console_setup(console: str) -> Dict[str, object]:
 def wiring_text(console: str = "generic") -> str:
     info = console_setup(console)
     lines: List[str] = [f"{info['name']}:"]
-    lines += [f"  {i}. {step}" for i, step in enumerate(info["chain"], 1)]
+    chain = info["chain"]
+    lines += [f"  {i}. {step}" for i, step in enumerate(chain[:3], 1)]
+    lines += [f"     {step.strip()}" for step in chain[3:]]
     for extra in info["steps"]:
         lines.append(f"  - {extra}")
     lines.append(f"  - HDCP: {info['hdcp']}")

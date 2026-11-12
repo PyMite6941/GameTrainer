@@ -77,6 +77,25 @@ Thumbs.db
 # tmp
 tmp/
 
-# GameTrainer generated data
-data/test/
-data/replays/
+# GameTrainer: created automatically on each machine - never commit
+# (tracking data, replays, test video, calibration snapshots, analyzer output)
+data/
+profiles/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+calibration.png
+# per-machine capture settings (written by `gametrainer --list-devices --save`);
+# defaults live in the code and config/setup_examples/
+config/device_config.json
+
+# Secrets and local settings
+.env
+.env.*
+*.pem
+*.key
+secrets.json
+.claude/
