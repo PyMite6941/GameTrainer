@@ -1,0 +1,86 @@
+{
+  "name": "Gran Turismo 7",
+  "console": "playstation_5",
+  "kind": "racer",
+  "aliases": [
+    "gt7"
+  ],
+  "description": "Racing sim (PS5, PS4): two-player split screen or a chase-cam race; reads lap and position.",
+  "capture": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "downscale_width": 1280,
+    "process_every_n_frames": 2,
+    "detect_scale": 0.5,
+    "color_space": "BGR",
+    "roi": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "ocr_every_n_frames": 15
+  },
+  "entities": [
+    {
+      "name": "player_car",
+      "method": "color",
+      "player_id": "p1",
+      "primary": true,
+      "color_bgr": [
+        0,
+        0,
+        200
+      ],
+      "min_area": 150,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "car"
+    },
+    {
+      "name": "rival_car",
+      "method": "color",
+      "player_id": "p2",
+      "primary": false,
+      "color_bgr": [
+        200,
+        200,
+        200
+      ],
+      "min_area": 150,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "car"
+    }
+  ],
+  "templates": [],
+  "hud_zones": [
+    {
+      "name": "lap",
+      "entity": "lap",
+      "bbox": [
+        40,
+        20,
+        200,
+        60
+      ],
+      "label": "current lap"
+    },
+    {
+      "name": "position",
+      "entity": "position",
+      "bbox": [
+        40,
+        70,
+        200,
+        110
+      ],
+      "label": "race position"
+    }
+  ],
+  "notes": "Turn HDCP off on the PlayStation. Use the chase camera: in cockpit view your own car isn't visible to track. Colors and HUD boxes are starting points: run `gametrainer gt7 --calibrate` and click each player to set the real colors for your match."
+}

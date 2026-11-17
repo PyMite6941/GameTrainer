@@ -1,6 +1,6 @@
 # GameTrainer
 
-Track your Switch, PlayStation, or Xbox games and review them like Leetify does for CS2:
+Track your Switch 2, Switch, PlayStation, Xbox, Steam Deck, PC, or retro console games and review them like Leetify does for CS2:
 replays and stats built from **data points, not video**. It runs on a **Raspberry Pi 4/5,
 laptop, or desktop** (the "host device") with no GPU. Desktop systems only, not phones.
 
@@ -35,7 +35,7 @@ rank. Each run is a separate session in `data/gameplay.db`, and no video is stor
 ## Quick start
 
 ```bash
-python3 install_middleware.py && source .venv/bin/activate   # install + 50 self-checks
+python3 install_middleware.py && source .venv/bin/activate   # install + 61 self-checks
 gametrainer --setup                                          # guided setup, step by step
 gametrainer smash --build-replay --stats --view              # play, then review
 ```
@@ -52,6 +52,41 @@ opponents), and the replay viewer opens.
 No console? `gametrainer smash --synthetic --build-replay --stats --view` runs the same flow
 on a generated test match.
 
+## Dashboard: match history in any browser (like Leetify's site)
+
+```bash
+gametrainer --serve                     # http://<host-ip>:8765 from your phone, laptop or TV
+gametrainer smash --serve               # track and serve; the match shows as LIVE
+gametrainer --install-service           # Pi/Linux: serve on every boot
+```
+
+The host device serves a read-only page with every match (replay in the browser, scoreboard,
+▲/▼ against your usual numbers), career averages and trends per game, and the supported games
+and consoles. No accounts, no cloud, no game servers. See [docs/DASHBOARD.md](docs/DASHBOARD.md).
+
+## Supported games and consoles
+
+| Short name | Game | Console |
+|---|---|---|
+| `smash` | Super Smash Bros. Ultimate | Switch / Switch 2 |
+| `kart` | Mario Kart 8 Deluxe | Switch / Switch 2 |
+| `mkw` | Mario Kart World | Switch 2 |
+| `splatoon` | Splatoon 3 | Switch / Switch 2 |
+| `party` | Super Mario Party Jamboree (minigames) | Switch / Switch 2 |
+| `rl` | Rocket League | Switch, PlayStation, Xbox, PC |
+| `sf6` | Street Fighter 6 | PS5, PS4, Xbox Series, PC |
+| `tekken` | Tekken 8 | PS5, Xbox Series, PC |
+| `gt7` | Gran Turismo 7 | PS5, PS4 |
+| `fh5` | Forza Horizon 5 | Xbox Series, Xbox One, PC |
+| `generic` | Any game: tracks whatever moves | any |
+
+Colors and HUD boxes in the bundled profiles are starting points: run
+`gametrainer <short name> --calibrate` once to set them for your match.
+
+Consoles: Switch 2, Switch, PS5, PS4, Xbox Series, Xbox One, Steam Deck / PC handhelds, gaming
+PCs, and older consoles (Wii U, Xbox 360, PS3 over component, Wii and retro consoles through an
+HDMI adapter). `gametrainer --consoles` lists them; `gametrainer --wiring <console>` explains one.
+
 ## After the game: data-point replay (not video)
 
 ```bash
@@ -64,13 +99,13 @@ python track_game.py ./data/replays/replay.json      # scrub through it
 
 The capture device index and capture mode live in `config/device_config.json`. Change them
 per machine, or pass `--device N`. `--list-devices` shows which index is the card.
-GameTrainer opens no network ports: capture is local over USB.
+Capture is local over USB. GameTrainer opens a network port only when you run `--serve` (the dashboard).
 
 ## Add a game (no code changes)
 
 ```bash
-gametrainer --new-game "Rocket League" --kind racer --players 2
-gametrainer rocket_league --calibrate     # click a player, press their number
+gametrainer --new-game "Brawlhalla" --kind fighter --players 2
+gametrainer brawlhalla --calibrate        # click a player, press their number
 ```
 
 Profiles are JSON files in `config/games/`. Every field is listed in
@@ -89,7 +124,7 @@ Or install it as a command: `pip install .`, then run `gametrainer`. Desktop onl
 ## Verify
 
 ```bash
-./run_tests.sh                     # system check + 50 end-to-end checks, no capture card needed
+./run_tests.sh                     # system check + 61 end-to-end checks, no capture card needed
 ```
 
 ## Docs
@@ -97,6 +132,7 @@ Or install it as a command: `pip install .`, then run `gametrainer`. Desktop onl
 Full docs (GitHub Pages, served from `docs/`): start at [`docs/index.md`](docs/index.md).
 
 - [`docs/TUTORIAL.md`](docs/TUTORIAL.md) — your first tracked match, step by step
+- [`docs/DASHBOARD.md`](docs/DASHBOARD.md) — the web dashboard the host serves to your network
 - [`docs/MIDDLEWARE.md`](docs/MIDDLEWARE.md) — how capture, detection, sessions, and replays fit together
 - [`docs/HARDWARE_SETUP.md`](docs/HARDWARE_SETUP.md) — cables, capture card, console notes
 - [`docs/INSTALLATION.md`](docs/INSTALLATION.md) — binary or from-source install

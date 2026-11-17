@@ -30,7 +30,9 @@ under-powered Pi is the most common reason a capture card drops out.
 
 ## What else you need
 
-- A console: Nintendo Switch (docked), PlayStation, or Xbox
+- A console with a video output: Nintendo Switch 2 or Switch (docked), PS5, PS4, Xbox Series,
+  Xbox One, Steam Deck or another PC handheld, a gaming PC, or an older console (Wii U, Xbox 360,
+  PS3, Wii, GameCube, N64, PS2 ...). `gametrainer --consoles` lists them all.
 - An HDMI capture card. **With passthrough** (HDMI In + HDMI Out + USB) is best. A cheap
   USB capture stick also works with monitor mode or a splitter, see below.
 - Two HDMI cables, plus a micro-HDMI → HDMI cable if the host is a Raspberry Pi and it drives
@@ -75,7 +77,8 @@ instead of full screen.
 Print the steps for your console, with its HDCP and output settings:
 
 ```bash
-gametrainer --wiring switch     # or ps5, ps4, xbox, xb1
+gametrainer --wiring switch     # or switch2, ps5, ps4, xbox, xb1, deck, pc, wiiu, ps3, gamecube ...
+gametrainer --consoles          # every supported console and its short name
 ```
 
 ## Console notes
@@ -84,6 +87,17 @@ gametrainer --wiring switch     # or ps5, ps4, xbox, xb1
   black picture. GameTrainer warns you after 3 seconds of black.
 - **Nintendo Switch:** use docked mode only. Handheld mode has no HDMI out.
 - **Xbox:** works as is; set the output to 1080p.
+- **Nintendo Switch 2:** docked only. Set TV output to 1080p and turn 120 Hz off; most cards
+  capture 60 Hz. Original Switch games work the same.
+- **Steam Deck / PC handhelds / PC:** a dock or USB-C-to-HDMI adapter into the card. Output
+  1080p 60 Hz.
+- **Wii U, Xbox 360:** HDMI with no HDCP on games, so they work directly. Only the TV picture is
+  captured, not the Wii U GamePad.
+- **PS3:** its HDMI always has HDCP. Use the component cable at 720p and a component-to-HDMI
+  converter (or a capture device with component input).
+- **Wii, GameCube, N64, PS2 and other retro consoles:** no HDMI. Put an analog-to-HDMI adapter
+  or upscaler in front of the capture card. Low resolutions are cheap to track.
+- **Not trackable:** handhelds with no video out (Switch Lite, phones, remote-play devices).
 - Set every console to **1080p** output. Most cards pass 4K through but capture 1080p.
 
 ## No passthrough? Use monitor mode or a splitter

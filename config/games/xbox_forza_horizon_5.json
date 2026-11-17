@@ -1,0 +1,76 @@
+{
+  "name": "Forza Horizon 5",
+  "console": "xbox_series",
+  "kind": "racer",
+  "aliases": [
+    "fh5",
+    "forza"
+  ],
+  "description": "Open-world racing (Xbox Series, Xbox One, PC): chase-cam car tracking plus race position.",
+  "capture": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "downscale_width": 1280,
+    "process_every_n_frames": 2,
+    "detect_scale": 0.5,
+    "color_space": "BGR",
+    "roi": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "ocr_every_n_frames": 15
+  },
+  "entities": [
+    {
+      "name": "player_car",
+      "method": "color",
+      "player_id": "p1",
+      "primary": true,
+      "color_bgr": [
+        0,
+        0,
+        200
+      ],
+      "min_area": 150,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "car"
+    },
+    {
+      "name": "rival_car",
+      "method": "color",
+      "player_id": "p2",
+      "primary": false,
+      "color_bgr": [
+        220,
+        110,
+        20
+      ],
+      "min_area": 150,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "car"
+    }
+  ],
+  "templates": [],
+  "hud_zones": [
+    {
+      "name": "position",
+      "entity": "position",
+      "bbox": [
+        40,
+        20,
+        200,
+        70
+      ],
+      "label": "race position"
+    }
+  ],
+  "notes": "Use the chase camera. The minimap is ignored; only the main view is tracked. Colors and HUD boxes are starting points: run `gametrainer fh5 --calibrate` and click each player to set the real colors for your match."
+}

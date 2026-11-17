@@ -1,6 +1,12 @@
 {
   "name": "Mario Kart 8 Deluxe",
   "console": "nintendo_switch",
+  "kind": "racer",
+  "aliases": [
+    "kart",
+    "mk8",
+    "mk8dx"
+  ],
   "description": "Kart racer: track karts by body color and read lap/position from the HUD.",
   "capture": {
     "resolution": [

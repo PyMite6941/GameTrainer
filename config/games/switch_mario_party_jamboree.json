@@ -1,0 +1,96 @@
+{
+  "name": "Super Mario Party Jamboree",
+  "console": "nintendo_switch",
+  "kind": "fighter",
+  "aliases": [
+    "party",
+    "mario_party"
+  ],
+  "description": "Party game minigames: track up to 4 players by character color.",
+  "capture": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "downscale_width": 1280,
+    "process_every_n_frames": 2,
+    "detect_scale": 0.5,
+    "color_space": "BGR",
+    "roi": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "ocr_every_n_frames": 15
+  },
+  "entities": [
+    {
+      "name": "player_1",
+      "method": "color",
+      "player_id": "p1",
+      "primary": true,
+      "color_bgr": [
+        0,
+        0,
+        200
+      ],
+      "min_area": 120,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "skin"
+    },
+    {
+      "name": "player_2",
+      "method": "color",
+      "player_id": "p2",
+      "primary": false,
+      "color_bgr": [
+        0,
+        200,
+        0
+      ],
+      "min_area": 120,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "skin"
+    },
+    {
+      "name": "player_3",
+      "method": "color",
+      "player_id": "p3",
+      "primary": false,
+      "color_bgr": [
+        0,
+        200,
+        220
+      ],
+      "min_area": 120,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "skin"
+    },
+    {
+      "name": "player_4",
+      "method": "color",
+      "player_id": "p4",
+      "primary": false,
+      "color_bgr": [
+        200,
+        80,
+        0
+      ],
+      "min_area": 120,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "skin"
+    }
+  ],
+  "templates": [],
+  "hud_zones": [],
+  "notes": "Board turns are mostly menus; the stats are meaningful for action minigames. Each minigame is easiest to review as its own session. Colors and HUD boxes are starting points: run `gametrainer party --calibrate` and click each player to set the real colors for your match."
+}

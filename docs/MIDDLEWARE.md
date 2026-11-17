@@ -20,7 +20,7 @@ console ─HDMI─▶ capture card ─HDMI passthrough─▶ TV
 
 ```bash
 python3 install_middleware.py          # venv, install, system check, 50-check verification
-gametrainer --wiring ps5               # how to connect your console (switch, ps5, ps4, xbox)
+gametrainer --wiring ps5               # how to connect your console (switch2, switch, ps5, xbox, deck ...)
 gametrainer --list-devices --save      # find the capture card and remember its index
 gametrainer smash --calibrate          # click a player, press their number: color saved
 gametrainer smash --build-replay --view
@@ -81,12 +81,20 @@ gametrainer smash --build-replay --view
 | `system_integration` (profiles) | `create_profile()` (`--new-game`), `set_entity_color()` (calibration). Edits to bundled profiles are saved as copies in `./config/games`. |
 | `setup_wizard` | `gametrainer --setup`: host → console and wiring → capture card → game → colors → 10-second test that reports how often each player was seen. |
 
+### `middleware/server/`
+
+| Module | Purpose |
+|---|---|
+| `store.Store` | Dashboard data from `gameplay.db`: sessions (with live status), cached replays, match summaries with `vs_average` deltas, career averages and trends per game and player slot. |
+| `app` | `gametrainer --serve`: a standard-library HTTP server for the read-only page (`static/index.html`) and the JSON API. `serve_in_background()` runs it on a thread. See [DASHBOARD.md](DASHBOARD.md). |
+| `service` | `--install-service`: the systemd user unit that serves the dashboard on boot. |
+
 ### `hardware_tools/`
 
 | Module | Purpose |
 |---|---|
 | `host` | The host device: model (Raspberry Pi detection), USB 3 ports, connected screens, Pi under-voltage, requirements. |
-| `adapters.hdmi_adapter` | Per-console wiring (passthrough or monitor mode), HDCP, and video-output settings (`gametrainer --wiring <console>`). |
+| `adapters.hdmi_adapter` | Per-console wiring (passthrough or monitor mode), HDCP, and video-output settings for 14 console families, including adapters for consoles without HDMI. `list_consoles()` backs `--consoles` (`gametrainer --wiring <console>`). |
 | `adapters.usb_adapter` | USB 2 vs USB 3 advice for the card. |
 | `drivers.capture_card_driver` | Card modes via `v4l2-ctl` and `best_mode()`: MJPG, 1080p, up to 60 fps. |
 | `drivers.splitter_driver` | Setup for capture devices without passthrough (HDMI splitter + capture stick). |
@@ -120,6 +128,7 @@ for d in result["detections"]:
 ./run_tests.sh             # system check (no device probe) + verify_tracker.py
 ```
 
-`verify_tracker.py` runs 50 checks with no hardware: tracking accuracy, sessions, replays,
-older databases, the viewer, the CLI, every middleware module above, the setup helpers, and
-the analyzer and profiler.
+`verify_tracker.py` runs 61 checks with no hardware: tracking accuracy, sessions, replays,
+older databases, the viewer, the CLI, every middleware module above, the setup helpers, every
+bundled game profile and console, the dashboard server and its API, and the analyzer and
+profiler.

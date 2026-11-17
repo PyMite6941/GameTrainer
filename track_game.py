@@ -18,6 +18,11 @@ Setup:
 
 Play:
     gametrainer smash --build-replay --view
+    gametrainer smash --serve             track and serve the dashboard to your network
+
+Dashboard (Leetify-style web view, read-only, from this computer):
+    gametrainer --serve                   http://<this-computer>:8765 on phones/laptops
+
     gametrainer --build-replay --stats    latest session's replay + scoreboard
     gametrainer ./data/replays/replay.json
 """
@@ -46,7 +51,7 @@ from middleware.integration.system_integration import (  # noqa: E402
     user_dir,
 )
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 __all__ = ["main", "list_profiles", "resolve_profile", "load_device_config", "is_replay_file", "user_dir"]
 
 
@@ -108,6 +113,36 @@ def cmd_wiring(console: str) -> int:
     print(wiring_text(console))
     print("\nNo HDMI Out on your capture device?\n" + splitter_text())
     return 0
+
+
+def cmd_consoles() -> int:
+    from hardware_tools.adapters.hdmi_adapter import list_consoles
+
+    print("Supported consoles (wiring for one: gametrainer --wiring <short name>):")
+    for c in list_consoles():
+        short = ", ".join(c["short_names"][:5]) or c["key"]
+        print(f"  {c['name']:58s} {short}")
+    print("\nAnything with HDMI out works through a capture card; older consoles need an HDMI adapter.")
+    return 0
+
+
+def start_dashboard(args, blocking: bool) -> object:
+    """Serve the dashboard; blocking for `--serve` alone, on a thread while tracking."""
+    from middleware.server import app
+
+    host = args.host or "0.0.0.0"
+    if blocking:
+        return app.serve(args.output, host=host, port=args.port, db_path=args.db, version=__version__)
+    try:
+        httpd, _ = app.serve_in_background(data_dir=args.output, host=host, port=args.port,
+                                           db_path=args.db, version=__version__)
+    except OSError as e:
+        print(f"  Dashboard not started ({e.strerror or e}); tracking continues. Try --port 9000.")
+        return None
+    port = httpd.server_address[1]
+    urls = [f"http://{ip}:{port}" for ip in app.lan_addresses()] if host in ("0.0.0.0", "") else [f"http://{host}:{port}"]
+    print(f"  Dashboard: {', '.join(urls) or f'http://localhost:{port}'}  (live while tracking)")
+    return httpd
 
 
 def load_image_or_frame(args, cfg) -> Optional["object"]:
@@ -373,7 +408,16 @@ def build_parser() -> argparse.ArgumentParser:
     setup.add_argument("--new-game", metavar="NAME", help="Create a game profile, e.g. --new-game \"Rocket League\" --kind racer")
     setup.add_argument("--kind", choices=["fighter", "racer", "shooter", "any"], help="With --new-game: kind of game")
     setup.add_argument("--players", type=int, default=2, help="With --new-game: players to track (default 2)")
-    setup.add_argument("--console", help="With --new-game: switch, ps5, ps4, xbox ...")
+    setup.add_argument("--console", help="With --new-game: switch, switch2, ps5, ps4, xbox, deck, pc ...")
+    setup.add_argument("--consoles", action="store_true", help="List supported consoles and their short names")
+
+    web = p.add_argument_group("dashboard (web view served by this computer)")
+    web.add_argument("--serve", action="store_true",
+                     help="Serve the read-only match dashboard to browsers on your network. With a game: track and serve")
+    web.add_argument("--host", default=None, help="With --serve: address to listen on (default 0.0.0.0 = your network; 127.0.0.1 = this computer only)")
+    web.add_argument("--port", type=int, default=8765, help="With --serve: port (default 8765)")
+    web.add_argument("--install-service", action="store_true",
+                     help="Linux: start the dashboard on boot (writes a systemd user service for this folder)")
 
     track = p.add_argument_group("tracking")
     track.add_argument("--device", default=None, help="Video device index or video file path (overrides device_config.json)")
@@ -424,6 +468,23 @@ def main(argv: Optional[List[str]] = None) -> int:
         return print_report(run_checks(data_dir=args.output))
     if args.wiring:
         return cmd_wiring(args.wiring)
+    if args.consoles:
+        return cmd_consoles()
+    if args.serve and not args.target:
+        return start_dashboard(args, blocking=True)
+    if args.install_service:
+        if not sys.platform.startswith("linux"):
+            print("--install-service is for Linux (systemd). On Windows/macOS run `gametrainer --serve` at login instead.")
+            return 1
+        from middleware.server.service import UNIT_NAME, install_service
+
+        path = install_service(port=args.port, output=args.output, host=args.host or "0.0.0.0")
+        print(f"Wrote {path}")
+        print("Enable it (starts now and on every boot):")
+        print(f"  systemctl --user daemon-reload && systemctl --user enable --now {UNIT_NAME}")
+        print("  sudo loginctl enable-linger $USER     # keep it running when nobody is logged in")
+        print(f"Then open http://<this-computer>:{args.port}  (stop: systemctl --user disable --now {UNIT_NAME})")
+        return 0
     if args.list_devices:
         return cmd_list_devices(args.save)
     if args.pick:
@@ -482,15 +543,19 @@ def main(argv: Optional[List[str]] = None) -> int:
     # List profiles
     if args.target is None:
         print(f"GameTrainer {__version__} - CPU-only console game tracker")
-        print("Game profiles:")
+        print("Game profiles (use the short name or the file name):")
         for prof in list_profiles():
             try:
-                name = json.loads(prof.read_text()).get("name", prof.stem)
+                data = json.loads(prof.read_text())
+                name, aliases = data.get("name", prof.stem), data.get("aliases") or []
+                console = data.get("console", "generic")
             except (OSError, json.JSONDecodeError):
-                name = "(invalid JSON)"
-            print(f"  {prof.stem:32s} {name}")
+                name, aliases, console = "(invalid JSON)", [], ""
+            short = aliases[0] if aliases else prof.stem
+            print(f"  {short:12s} {name:30s} {console:18s} {prof.stem}")
         print("\nFirst time? gametrainer --check, then gametrainer --list-devices --save")
         print("Play:       gametrainer <profile> --build-replay --view")
+        print("Dashboard:  gametrainer --serve   (match history in any browser on your network)")
         print("Help:       gametrainer --help")
         return 0
 
@@ -547,6 +612,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         monitor = LiveMonitor(fullscreen=not args.windowed)
         tracker.capture.on_source_frame = monitor.show
 
+    dashboard = start_dashboard(args, blocking=False) if args.serve else None
     summ = tracker.summary()
     print(f"Tracking '{tracker.profile.name}' ({tracker.profile.console})  session {tracker.session_id}")
     print(f"  device={device}  source {summ['source']} -> working {w}x{h}, every {tracker.profile.process_every_n} "
@@ -589,6 +655,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         print("\nStopped.")
     finally:
         tracker.stop()
+        if dashboard is not None:
+            dashboard.shutdown()
+            dashboard.server_close()
         if monitor is not None:
             monitor.close()
         if args.preview:

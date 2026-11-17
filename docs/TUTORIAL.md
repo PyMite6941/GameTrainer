@@ -20,7 +20,7 @@ python3 install_middleware.py
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 ```
 
-The installer finishes with `50/50 checks passed` and a list of next steps. If it prints
+The installer finishes with `61/61 checks passed` and a list of next steps. If it prints
 commands with `sudo`, run them; they need admin rights, so it leaves them to you.
 
 ### 2. Track a generated test match
@@ -79,7 +79,7 @@ Look for `[FAIL]` lines and fix them first. The most common ones:
 ### 2. Wire it up
 
 ```bash
-gametrainer --wiring switch        # or ps5, ps4, xbox
+gametrainer --wiring switch        # or switch2, ps5, ps4, xbox, deck, pc ... (--consoles lists all)
 ```
 
 Follow the printed steps. In short: console HDMI → capture card **HDMI In**, card **USB** → a
@@ -107,11 +107,16 @@ Saved device.index = 0 to config/device_config.json
 
 ### 4. Pick or create your game
 
-Included: Smash Bros. Ultimate (`smash`), Mario Kart 8 Deluxe (`kart`), and a generic
-"anything that moves" profile (`console_generic`). For another game:
+Run `gametrainer` with no arguments to see the included games and their short names:
+Smash Bros. Ultimate (`smash`), Mario Kart 8 Deluxe (`kart`), Mario Kart World (`mkw`),
+Splatoon 3 (`splatoon`), Mario Party Jamboree (`party`), Rocket League (`rl`), Street
+Fighter 6 (`sf6`), Tekken 8 (`tekken`), Gran Turismo 7 (`gt7`), Forza Horizon 5 (`fh5`), and a
+generic "anything that moves" profile (`generic`). This tutorial uses Rocket League (`rl`).
+
+For a game that isn't included:
 
 ```bash
-gametrainer --new-game "Rocket League" --kind racer --players 2 --console ps5
+gametrainer --new-game "Brawlhalla" --kind fighter --players 2 --console ps5
 ```
 
 `--kind` is `fighter`, `racer`, `shooter`, or `any`. Use `any` if you're unsure: it tracks
@@ -122,7 +127,7 @@ whatever moves, with no colors needed.
 Start a match on the console, then:
 
 ```bash
-gametrainer rocket_league --calibrate
+gametrainer rl --calibrate
 ```
 
 A window shows the live game:
@@ -140,8 +145,9 @@ No screen on the host? `--calibrate` saves a screenshot instead and tells you th
 ### 6. Play a match
 
 ```bash
-gametrainer rocket_league --build-replay --stats --view
-# monitor mode:  gametrainer rocket_league --monitor --build-replay --stats --view
+gametrainer rl --build-replay --stats --view
+# monitor mode:  gametrainer rl --monitor --build-replay --stats --view
+# with the dashboard on your phone:  gametrainer rl --serve --build-replay
 ```
 
 Play normally. When the match ends, press **Ctrl+C** in the terminal, or **q** on the monitor
@@ -165,6 +171,16 @@ Every match is a separate session. To look back at older ones:
 gametrainer --list-sessions
 gametrainer --build-replay --session <id> --stats
 ```
+
+### 7. Look back from your phone
+
+```bash
+gametrainer --serve
+```
+
+Open the printed `http://<host-ip>:8765` address on your phone or laptop. You'll see every
+match, the replay, your scoreboard with ▲/▼ against your usual numbers, and career trends.
+To serve it on every boot of a Pi: `gametrainer --install-service`. See [Dashboard](DASHBOARD.md).
 
 ## When something's off
 

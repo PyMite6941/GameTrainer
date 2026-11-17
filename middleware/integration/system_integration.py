@@ -62,14 +62,28 @@ def list_profiles() -> List[Path]:
     return [seen[k] for k in sorted(seen)]
 
 
+def profile_aliases(path: Path) -> List[str]:
+    """Short names a profile answers to (its "aliases" list), lower-case."""
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return []
+    aliases = data.get("aliases") if isinstance(data, dict) else None
+    return [str(a).lower() for a in aliases] if isinstance(aliases, list) else []
+
+
 def resolve_profile(target: str) -> Optional[Path]:
-    """Accept a path, a profile filename, or a short name like 'smash'."""
+    """Accept a path, a profile filename, an alias like 'smash' or 'sf6', or a
+    unique part of a filename."""
     p = Path(target)
     if p.is_file():
         return p
     profiles = list_profiles()
     for prof in profiles:
         if prof.name == p.name or prof.stem == target:
+            return prof
+    for prof in profiles:
+        if target.lower() in profile_aliases(prof):
             return prof
     matches = [prof for prof in profiles if target.lower() in prof.stem.lower()]
     return matches[0] if len(matches) == 1 else None
@@ -239,6 +253,8 @@ def create_profile(name: str, console: str = "generic", kind: str = "fighter", p
     profile = {
         "name": name,
         "console": console,
+        "kind": kind,
+        "aliases": [],
         "description": GAME_KINDS[kind],
         "capture": {"resolution": [1920, 1080], "downscale_width": 1280, "process_every_n_frames": 2,
                     "detect_scale": 0.5, "ocr_every_n_frames": 15, "roi": [0, 0, 1280, 720]},

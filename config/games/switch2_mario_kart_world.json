@@ -1,0 +1,119 @@
+{
+  "name": "Mario Kart World",
+  "console": "nintendo_switch_2",
+  "kind": "racer",
+  "aliases": [
+    "mkw",
+    "kart_world"
+  ],
+  "description": "Kart racer (Switch 2): track up to 4 local karts by body color and read lap/position from the HUD.",
+  "capture": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "downscale_width": 1280,
+    "process_every_n_frames": 2,
+    "detect_scale": 0.5,
+    "color_space": "BGR",
+    "roi": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "ocr_every_n_frames": 15
+  },
+  "entities": [
+    {
+      "name": "player_kart",
+      "method": "color",
+      "player_id": "p1",
+      "primary": true,
+      "color_bgr": [
+        0,
+        120,
+        220
+      ],
+      "min_area": 100,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "car"
+    },
+    {
+      "name": "kart_2",
+      "method": "color",
+      "player_id": "p2",
+      "primary": false,
+      "color_bgr": [
+        220,
+        40,
+        40
+      ],
+      "min_area": 100,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "car"
+    },
+    {
+      "name": "kart_3",
+      "method": "color",
+      "player_id": "p3",
+      "primary": false,
+      "color_bgr": [
+        0,
+        200,
+        0
+      ],
+      "min_area": 100,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "car"
+    },
+    {
+      "name": "kart_4",
+      "method": "color",
+      "player_id": "p4",
+      "primary": false,
+      "color_bgr": [
+        0,
+        200,
+        220
+      ],
+      "min_area": 100,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "car"
+    }
+  ],
+  "templates": [],
+  "hud_zones": [
+    {
+      "name": "lap",
+      "entity": "lap",
+      "bbox": [
+        600,
+        20,
+        700,
+        55
+      ],
+      "label": "current lap"
+    },
+    {
+      "name": "position",
+      "entity": "position",
+      "bbox": [
+        1120,
+        600,
+        1260,
+        700
+      ],
+      "label": "race position"
+    }
+  ],
+  "notes": "Kart colors vary by driver and vehicle; the measured body color is stored as each player's car. Split-screen: set roi to one player's quarter, or track all four karts across the whole screen. Colors and HUD boxes are starting points: run `gametrainer mkw --calibrate` and click each player to set the real colors for your match."
+}

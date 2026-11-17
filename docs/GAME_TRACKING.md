@@ -66,6 +66,10 @@ gametrainer my_game --calibrate                                # click a player,
 ```
 
 This writes `config/games/my_game.json`, which you can refine by hand with the fields below.
+Top-level fields besides the ones below: `name`, `console`, `kind` (`fighter`, `racer`,
+`shooter`, `any`), `description`, `notes`, and `aliases`, a list of short names such as
+`["sf6"]` that you can type instead of the file name. Aliases must not clash with another
+profile's aliases.
 You can also copy `config/games/console_generic.json` and edit it.
 
 ### `capture`
