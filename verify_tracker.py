@@ -206,6 +206,8 @@ def main() -> int:
     check("build replay later via CLI", code == 0 and (cli_out / "r2.json").exists())
     code, text = cli("not_a_game")
     check("unknown profile fails cleanly", code == 1 and "Profile not found" in text)
+    code, text = cli("mario_kart")
+    check("ambiguous game names list the short names", code == 1 and "kart" in text and "mkw" in text, text.strip().splitlines()[0][:70])
 
     print("\nMiddleware")
     import numpy as np

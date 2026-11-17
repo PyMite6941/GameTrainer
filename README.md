@@ -35,7 +35,7 @@ rank. Each run is a separate session in `data/gameplay.db`, and no video is stor
 ## Quick start
 
 ```bash
-python3 install_middleware.py && source .venv/bin/activate   # install + 61 self-checks
+python3 install_middleware.py && source .venv/bin/activate   # install + 62 self-checks
 gametrainer --setup                                          # guided setup, step by step
 gametrainer smash --build-replay --stats --view              # play, then review
 ```
@@ -124,7 +124,7 @@ Or install it as a command: `pip install .`, then run `gametrainer`. Desktop onl
 ## Verify
 
 ```bash
-./run_tests.sh                     # system check + 61 end-to-end checks, no capture card needed
+./run_tests.sh                     # system check + 62 end-to-end checks, no capture card needed
 ```
 
 ## Docs

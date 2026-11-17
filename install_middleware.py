@@ -188,10 +188,12 @@ def main() -> int:
     activate = (Path(args.venv) / ("Scripts\\activate" if os.name == "nt" else "bin/activate")) if not args.no_venv else None
     if activate:
         print(f"    Activate the environment:  {'' if os.name == 'nt' else 'source '}{activate}")
-    print("    Connect a console:          gametrainer --wiring switch   (or ps5, ps4, xbox)")
+    print("    Guided setup:               gametrainer --setup")
+    print("    Connect a console:          gametrainer --wiring switch   (gametrainer --consoles lists all)")
     print("    Find the capture card:      gametrainer --list-devices --save")
     print("    Tune player colors:         gametrainer smash --calibrate")
     print("    Play and review:            gametrainer smash --build-replay --view")
+    print("    Dashboard on your network:  gametrainer --serve   (on boot: gametrainer --install-service)")
     return 1 if failed else 0
 
 

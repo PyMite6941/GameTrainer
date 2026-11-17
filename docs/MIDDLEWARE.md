@@ -128,7 +128,7 @@ for d in result["detections"]:
 ./run_tests.sh             # system check (no device probe) + verify_tracker.py
 ```
 
-`verify_tracker.py` runs 61 checks with no hardware: tracking accuracy, sessions, replays,
+`verify_tracker.py` runs 62 checks with no hardware: tracking accuracy, sessions, replays,
 older databases, the viewer, the CLI, every middleware module above, the setup helpers, every
 bundled game profile and console, the dashboard server and its API, and the analyzer and
 profiler.
