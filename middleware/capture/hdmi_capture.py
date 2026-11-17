@@ -1,8 +1,9 @@
 """
-HDMI capture: the console's picture, as frames on the laptop.
+HDMI capture: the console's picture, as frames on the host (Pi / laptop / desktop).
 
-Wiring (any console): console HDMI Out -> capture card HDMI In; card HDMI Out
--> TV (passthrough, so the TV stays the monitor); card USB -> laptop. The card
+Wiring (any console): console HDMI Out -> capture card HDMI In; card USB -> the
+host's USB 3 port; the screen hangs off the card's HDMI Out (passthrough) or the
+host's HDMI Out (monitor mode). The card
 is a UVC camera to the operating system. HdmiCapture opens it, asks for the
 configured mode (default 1920x1080 @ 60 in MJPG, which fits through USB),
 downscales to the working size, and notices a black picture - usually HDCP
@@ -74,6 +75,8 @@ class HdmiCapture:
         self._black_run = 0
         self.started_at = 0.0
         self.last_timestamp = 0.0  # capture time of the last frame read
+        # Called with every full-resolution frame before downscaling (monitor mode).
+        self.on_source_frame = None
 
     @classmethod
     def from_config(cls, device: Device, capture_cfg: Dict[str, Any], downscale_width: Optional[int] = None) -> "HdmiCapture":
@@ -138,6 +141,8 @@ class HdmiCapture:
             self.last_timestamp = self.started_at + (self.frames_read - 1) / max(1, self.fps)
         else:
             self.last_timestamp = time.time()
+        if self.on_source_frame is not None:
+            self.on_source_frame(frame)
         if self.scale != 1.0:
             frame = cv2.resize(frame, (self.work_w, self.work_h), interpolation=cv2.INTER_AREA)
         return frame

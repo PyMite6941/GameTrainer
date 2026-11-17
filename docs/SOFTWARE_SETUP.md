@@ -24,6 +24,8 @@ bundled copy. To customise the binary, put your own files in `./config/`.
 - GameTrainer opens no network ports. Capture is over USB.
 - Missing keys fall back to the defaults shown above. Starting points for common setups are in
   `config/setup_examples/`.
+- This file belongs to one host device, so it is not committed to git. The installer creates
+  it, and `--list-devices --save` updates it.
 
 ## Game profiles: `config/games/*.json`
 
@@ -34,8 +36,9 @@ and the HUD zones to read. Start by copying `console_generic.json`.
 profile, and tracking refuses a profile with errors such as a malformed `color_bgr` or an
 unknown method.
 
-To get a player's color, run `gametrainer <game> --calibrate` and click them in the live
-picture. The terminal prints `"color_bgr": [...]` to paste into the entity.
+To set up a new game: `gametrainer --new-game "Name" --kind fighter|racer|shooter|any`. To set
+the players' colors: `gametrainer <game> --calibrate`, click a player, and press their number.
+The color is saved into the profile.
 
 Run a profile by path, filename, or short name: `gametrainer smash`, `gametrainer kart`,
 `gametrainer console_generic`.
@@ -48,3 +51,7 @@ Run a profile by path, filename, or short name: `gametrainer smash`, `gametraine
 | `data/replays/replay.json` | The latest replay you built |
 | `data/test/synthetic_game.mp4` | The generated test match (`--synthetic`) |
 | `data/opponent_profile.json`, `profiles/` | Analyzer and play-style profiles |
+| `data/calibration.png` | Screenshot saved by `--calibrate` (`s` key, or with no screen) |
+
+Everything under `data/` and `profiles/` is created automatically and ignored by git: your
+matches stay on your machine.

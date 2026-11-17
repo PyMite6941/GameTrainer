@@ -31,7 +31,9 @@ The installer:
 - creates `data/`, and `config/device_config.json` if it's missing
 - runs the system check
 - if a capture card is connected, offers to save its index
-- runs the 42-check verification
+- runs the 50-check verification
+
+Then run `gametrainer --setup` for the guided setup, or follow the [Tutorial](TUTORIAL.md).
 
 It never overwrites existing files and never runs `sudo`. If something needs admin rights,
 such as joining the `video` group or `apt install v4l-utils tesseract-ocr`, it prints the

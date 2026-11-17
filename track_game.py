@@ -3,8 +3,9 @@
 GameTrainer - CPU-only game tracker for any console game (Leetify model).
 
 Capture:
-    Console HDMI Out -> capture card HDMI In; card HDMI Out -> TV (passthrough,
-    the TV stays your monitor); card USB -> laptop. The card is a UVC camera.
+    Console HDMI Out -> capture card HDMI In; card USB -> the host (Raspberry Pi
+    4/5, laptop or desktop with USB 3). The screen is fed either by the card's
+    HDMI Out (passthrough) or by the host's HDMI Out with --monitor.
 
     After the game, `--build-replay` rebuilds the match from data points (no
     video) with Leetify-style stats, and `gametrainer <replay.json>` plays it.
@@ -143,6 +144,7 @@ def load_image_or_frame(args, cfg) -> Optional["object"]:
 
 def cmd_pick(args, cfg) -> int:
     from middleware.analysis.frame_processor import sample_color
+    from middleware.integration.system_integration import set_entity_color
 
     frame = load_image_or_frame(args, cfg)
     if frame is None:
@@ -158,21 +160,39 @@ def cmd_pick(args, cfg) -> int:
         return 1
     c = sample_color(frame, x, y)
     print(f"At ({x}, {y}): {c['color_name']}  hue {c['hue']}  saturation {c['saturation']}  brightness {c['brightness']}")
-    print(f'Profile entity: "color_bgr": {c["color_bgr"]}, "hue_tolerance": 12')
+    if args.set:
+        if not args.target:
+            print("--set needs a game too, e.g.: gametrainer smash --pick 640,360 --set p1 --image shot.png")
+            return 1
+        profile_path = resolve_profile(args.target)
+        if profile_path is None:
+            print(f"Profile not found: {args.target}")
+            return 1
+        try:
+            out = set_entity_color(profile_path, args.set, c["color_bgr"])
+        except KeyError as e:
+            print(f"{e.args[0]}. Use a player id (p1), entity name, or number (1).")
+            return 1
+        print(f"Saved {args.set} = {c['color_bgr']} ({c['color_name']}) to {out}")
+    else:
+        print(f'Profile entity: "color_bgr": {c["color_bgr"]}, "hue_tolerance": 12')
+        print("Save it straight into a profile with: gametrainer <game> --pick X,Y --set p1")
     return 0
 
 
 def cmd_calibrate(args, cfg) -> int:
-    """Click on players in a live (or still) frame to read their colors."""
+    """Click players in a live (or still) picture; press a number to save that color for that player."""
     import cv2
 
     from middleware.analysis.frame_processor import FrameProcessor, GameProfile, sample_color
     from middleware.capture.hdmi_capture import HdmiCapture
+    from middleware.integration.system_integration import set_entity_color
 
     out_dir = Path(args.output)
     out_dir.mkdir(parents=True, exist_ok=True)
     snapshot = out_dir / "calibration.png"
-    profile = GameProfile(resolve_profile(args.target)) if args.target else None
+    profile_path = resolve_profile(args.target) if args.target else None
+    profile = GameProfile(profile_path) if profile_path else None
 
     if not has_display():
         frame = load_image_or_frame(args, cfg)
@@ -180,8 +200,8 @@ def cmd_calibrate(args, cfg) -> int:
             return 1
         cv2.imwrite(str(snapshot), frame)
         print(f"No display: saved a working-size frame to {snapshot}.")
-        print("Open it in an image viewer, note a player's pixel position, then run:")
-        print(f"  gametrainer --pick X,Y --image {snapshot}")
+        print("Open it in an image viewer, note each player's pixel position, then for each player run:")
+        print(f"  gametrainer {args.target or '<game>'} --pick X,Y --set p1 --image {snapshot}")
         return 0
 
     cap = None
@@ -195,52 +215,96 @@ def cmd_calibrate(args, cfg) -> int:
         try:
             cap.open()
         except RuntimeError as e:
-            print(f"Capture error: {e}. Find the card with: gametrainer --list-devices")
+            print(f"Capture error: {e}. Find the card with: gametrainer --list-devices --save")
             return 1
 
-    processor = FrameProcessor(profile) if profile else None
-    current = {"frame": still}
+    state = {"frame": still, "paused": False, "processor": FrameProcessor(profile) if profile else None,
+             "profile_path": profile_path}
     picks: List[dict] = []
+    players = [e.get("player_id") or e["name"] for e in profile.entities] if profile else []
 
     def on_click(event, x, y, flags, param):
-        if event == cv2.EVENT_LBUTTONDOWN and current["frame"] is not None:
-            c = sample_color(current["frame"], x, y)
+        if event == cv2.EVENT_LBUTTONDOWN and state["frame"] is not None:
+            c = sample_color(state["frame"], x, y)
             picks.append({"x": x, "y": y, **c})
-            print(f"  ({x:4d},{y:4d}) {c['color_name']:7s} \"color_bgr\": {c['color_bgr']}   hue {c['hue']}")
+            hint = f"  -> press 1-{len(players)} to use it for " + "/".join(players[:9]) if players else ""
+            print(f"  ({x:4d},{y:4d}) {c['color_name']:7s} \"color_bgr\": {c['color_bgr']}{hint}")
 
-    win = "GameTrainer calibrate - click players, s = save frame, q = quit"
+    win = "GameTrainer calibrate"
     cv2.namedWindow(win)
     cv2.setMouseCallback(win, on_click)
-    print("Click on each player's main color. Colors print here as profile JSON.")
+    print("Click on each player's main color (Space freezes the live picture).")
     if profile:
-        print(f"Circles show what '{profile.name}' currently detects.")
+        print(f"Then press the player's number to save it into '{profile.name}':")
+        for i, pid in enumerate(players[:9], 1):
+            print(f"  {i} = {pid}")
+        print("White circles show what the profile detects right now.")
+    print("s = save a screenshot, q or Esc = done.")
     try:
         while True:
-            if cap is not None:
+            if cap is not None and not state["paused"]:
                 f = cap.read()
                 if f is None:
                     print("Capture stopped delivering frames.")
                     break
-                current["frame"] = f
-            frame = current["frame"].copy()
-            if processor:
-                for d in processor.process(current["frame"])["detections"]:
+                state["frame"] = f
+            frame = state["frame"].copy()
+            if state["processor"]:
+                for d in state["processor"].process(state["frame"])["detections"]:
                     cv2.circle(frame, (d["x"], d["y"]), 18, (255, 255, 255), 2)
                     cv2.putText(frame, d["player_id"], (d["x"] + 20, d["y"]), cv2.FONT_HERSHEY_SIMPLEX,
-                                0.5, (255, 255, 255), 1, cv2.LINE_AA)
+                                0.55, (255, 255, 255), 1, cv2.LINE_AA)
             for p in picks[-8:]:
                 cv2.drawMarker(frame, (p["x"], p["y"]), (0, 255, 255), cv2.MARKER_CROSS, 14, 2)
+            help_text = "click a player" + (", then press their number" if players else "") + \
+                        "  |  Space " + ("resume" if state["paused"] else "freeze") + "  |  q done"
+            cv2.rectangle(frame, (0, 0), (frame.shape[1], 26), (0, 0, 0), -1)
+            cv2.putText(frame, help_text, (8, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
             cv2.imshow(win, frame)
             key = cv2.waitKey(30 if cap else 50) & 0xFF
             if key in (ord("q"), 27):
                 break
-            if key == ord("s"):
-                cv2.imwrite(str(snapshot), current["frame"])
+            if key == ord(" ") and cap is not None:
+                state["paused"] = not state["paused"]
+            elif key == ord("s"):
+                cv2.imwrite(str(snapshot), state["frame"])
                 print(f"  saved {snapshot}")
+            elif ord("1") <= key <= ord("9") and profile and picks:
+                n = key - ord("0")
+                if n > len(players):
+                    print(f"  there is no player {n} in this profile")
+                    continue
+                pick = picks[-1]
+                out = set_entity_color(state["profile_path"], str(n), pick["color_bgr"])
+                state["profile_path"] = out
+                state["processor"] = FrameProcessor(GameProfile(out))
+                print(f"  saved {players[n - 1]} = {pick['color_bgr']} ({pick['color_name']}) to {out}")
     finally:
         if cap:
             cap.close()
         cv2.destroyAllWindows()
+    if profile:
+        print(f"\nNext: gametrainer {Path(state['profile_path']).stem} --preview   (check the circles follow each player)")
+    return 0
+
+
+def cmd_new_game(args) -> int:
+    from middleware.integration.system_integration import GAME_KINDS, create_profile
+
+    kind = args.kind or "fighter"
+    if kind not in GAME_KINDS:
+        print("--kind must be one of: " + ", ".join(GAME_KINDS))
+        return 1
+    try:
+        path = create_profile(args.new_game, console=args.console or "generic", kind=kind, players=args.players)
+    except FileExistsError as e:
+        print(f"{e}. Pick another name, or edit that file.")
+        return 1
+    print(f"Created {path}  ({GAME_KINDS[kind]}, {args.players if kind != 'any' else 1} player(s))")
+    if kind != "any":
+        print(f"Next: gametrainer {path.stem} --calibrate   (click each player, press their number)")
+    else:
+        print(f"Next: gametrainer {path.stem} --preview")
     return 0
 
 
@@ -290,7 +354,7 @@ def draw_preview(result: dict) -> bool:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="gametrainer",
-        description="GameTrainer: track any console game on a CPU-only laptop and replay it from data points.",
+        description="GameTrainer: track any console game on a Raspberry Pi, laptop or desktop (CPU only) and replay it from data points.",
     )
     p.add_argument("target", nargs="?",
                    help="Game profile (path, filename, or short name like 'smash') OR a replay.json. Omit to list profiles.")
@@ -304,12 +368,21 @@ def build_parser() -> argparse.ArgumentParser:
     setup.add_argument("--calibrate", action="store_true", help="Click players in the live picture to read their colors")
     setup.add_argument("--pick", metavar="X,Y", help="Print the color at X,Y (from --image or the capture device)")
     setup.add_argument("--image", help="Screenshot to use with --pick / --calibrate instead of the capture device")
+    setup.add_argument("--set", metavar="PLAYER", help="With <game> --pick: save the color into that player (p1, name, or number)")
+    setup.add_argument("--setup", action="store_true", help="Guided first-time setup (host check, wiring, card, game, colors)")
+    setup.add_argument("--new-game", metavar="NAME", help="Create a game profile, e.g. --new-game \"Rocket League\" --kind racer")
+    setup.add_argument("--kind", choices=["fighter", "racer", "shooter", "any"], help="With --new-game: kind of game")
+    setup.add_argument("--players", type=int, default=2, help="With --new-game: players to track (default 2)")
+    setup.add_argument("--console", help="With --new-game: switch, ps5, ps4, xbox ...")
 
     track = p.add_argument_group("tracking")
     track.add_argument("--device", default=None, help="Video device index or video file path (overrides device_config.json)")
     track.add_argument("--frames", type=int, default=None, help="Stop after N processed frames")
     track.add_argument("--seconds", type=float, default=None, help="Stop after S seconds")
     track.add_argument("--output", default="./data", help="Output directory for gameplay.db")
+    track.add_argument("--monitor", action="store_true",
+                       help="Show the game full screen on this computer's display (host HDMI Out -> TV) while tracking")
+    track.add_argument("--windowed", action="store_true", help="With --monitor: use a window instead of full screen")
     track.add_argument("--preview", action="store_true", help="Show a live window with tracking overlays")
     track.add_argument("--quiet", action="store_true", help="Don't print a line per frame")
     track.add_argument("--synthetic", action="store_true", help="Track a generated test match instead of a capture device")
@@ -334,6 +407,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         pass
     cfg = load_device_config()
 
+    if args.setup:
+        from middleware.integration.setup_wizard import run_wizard
+
+        def calibrate(game: str) -> int:
+            args.target = game
+            return cmd_calibrate(args, cfg)
+
+        return run_wizard(args.output, calibrate=calibrate)
+    if args.new_game:
+        return cmd_new_game(args)
     if args.check:
         from middleware.integration.system_check import print_report, run_checks
 
@@ -447,13 +530,22 @@ def main(argv: Optional[List[str]] = None) -> int:
         fps, w, h = tracker.start()
     except RuntimeError as e:
         print(f"Capture error: {e}")
-        print("Check: console HDMI Out -> capture card HDMI In, card HDMI Out -> TV, card USB -> laptop.")
+        print("Check: console HDMI Out -> capture card HDMI In, card USB -> this computer's USB 3 port.")
         print("Find the right index with: gametrainer --list-devices --save   (wiring help: gametrainer --wiring <console>)")
         return 1
 
-    if args.preview and not has_display():
-        print("No display found - running without --preview.")
-        args.preview = False
+    if (args.preview or args.monitor) and not has_display():
+        print("No display found - running without " + ("--monitor." if args.monitor else "--preview."))
+        if args.monitor:
+            print("  For monitor mode, run GameTrainer from the host's desktop (the screen plugged into its HDMI Out).")
+        args.preview = args.monitor = False
+    monitor = None
+    if args.monitor:
+        from middleware.capture.monitor_display import LiveMonitor
+
+        args.preview = False  # the monitor already shows the picture
+        monitor = LiveMonitor(fullscreen=not args.windowed)
+        tracker.capture.on_source_frame = monitor.show
 
     summ = tracker.summary()
     print(f"Tracking '{tracker.profile.name}' ({tracker.profile.console})  session {tracker.session_id}")
@@ -462,11 +554,17 @@ def main(argv: Optional[List[str]] = None) -> int:
     if tracker.mode_warning:
         print(f"  Warning: {tracker.mode_warning}")
     print(f"  HUD OCR: {'on' if summ['tesseract'] else 'off (install tesseract-ocr + pytesseract to enable)'}")
-    print("  Play on the TV as usual. Press Ctrl+C to stop.\n")
+    if monitor:
+        print("  Monitor mode: the game is on this computer's screen. Press Esc or q there (or Ctrl+C here) to stop.\n")
+    else:
+        print("  Play on the TV as usual. Press Ctrl+C to stop.\n")
 
     warned_black = False
     try:
         for result in tracker.run(max_frames=args.frames, seconds=args.seconds):
+            if monitor is not None and monitor.closed:
+                print("\nMonitor closed.")
+                break
             if tracker.no_signal and not warned_black:
                 print("  Warning: the picture has been black for 3 s. PS4/PS5: turn HDCP off. "
                       "Otherwise check the console is on and its HDMI goes into the card's HDMI In.")
@@ -491,6 +589,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         print("\nStopped.")
     finally:
         tracker.stop()
+        if monitor is not None:
+            monitor.close()
         if args.preview:
             import cv2
 

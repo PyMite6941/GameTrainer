@@ -14,7 +14,9 @@ Generates a synthetic match (green player, red opponent, orange sprite), then ch
   9. the middleware modules: stats, simulator, color picker, frame processor,
      black-picture detection, profile validation, capture, run_session pipeline,
      capture-mode parsing, wiring notes, system check
- 10. the existing analyzer and player profiler still read the database
+  10. setup helpers: host device, --new-game, saving calibrated colors (copies of
+     bundled profiles go to ./config), saving the device index, setup wizard
+ 11. the existing analyzer and player profiler still read the database
 
 Run:  python verify_tracker.py         (exit code 0 = all checks passed)
 """
@@ -268,6 +270,38 @@ def main() -> int:
     checks_ = run_checks(probe_devices=False, data_dir=str(tmp / "check"))
     check("system check passes on this machine", not any(c.status == "FAIL" for c in checks_),
           "; ".join(f"{c.name}: {c.detail}" for c in checks_ if c.status == "FAIL"))
+
+    print("\nSetup helpers")
+    from hardware_tools.host import host_checks, host_info
+    from middleware.integration import system_integration as si
+
+    info = host_info()
+    check("host device is identified", bool(info["device"]) and bool(info["arch"]), f"{info['device']} ({info['arch']})")
+    check("host checks run", all(len(r) == 3 for r in host_checks()))
+    cwd = os.getcwd()
+    os.chdir(tmp)
+    try:
+        newp = si.create_profile("Verify Kart Game", console="switch", kind="racer", players=3)
+        prof = GameProfile(newp)
+        check("--new-game creates a valid profile", len(prof.entities) == 3 and prof.entities[0]["appearance"] == "car"
+              and not [x for x in prof.problems if x.startswith("error")], newp.name)
+        out = si.set_entity_color(newp, "p2", [10, 20, 200])
+        check("calibration saves a player's color", si.find_entity(json.loads(out.read_text()), "p2")["color_bgr"] == [10, 20, 200])
+        bundled = si.resolve_profile("smash")
+        copy = si.set_entity_color(bundled, "1", [0, 210, 0])
+        check("editing a bundled profile saves a copy in ./config", copy.resolve() != bundled.resolve()
+              and copy.resolve().parent == (tmp / "config" / "games").resolve())
+        check("the copy takes priority", si.resolve_profile("smash").resolve() == copy.resolve())
+        idx = si.save_device_index(3)
+        check("--list-devices --save writes the index", si.load_device_config()["device"]["index"] == 3 and idx.parent.name == "config")
+    finally:
+        os.chdir(cwd)
+    from middleware.integration.setup_wizard import run_wizard
+
+    buf = StringIO()
+    with redirect_stdout(buf):
+        code = run_wizard(str(tmp / "wizard"))
+    check("setup wizard falls back to a guide without a terminal", code == 0 and "--calibrate" in buf.getvalue())
 
     print("\nAnalyzer / profiler")
     try:

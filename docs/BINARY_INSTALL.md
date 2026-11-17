@@ -41,7 +41,8 @@ Find the index with `./dist/gametrainer --list-devices`, `v4l2-ctl --list-device
 ## Cable chain (any console)
 
 Console dock HDMI Out → capture card HDMI In → card HDMI Out to TV (passthrough = your monitor
-during play) → card USB 3.0 to laptop.
+during play) → card USB 3 to the host device (Raspberry Pi, laptop, or desktop). Or drive
+the TV from the host's HDMI with `--monitor`.
 
 - PS5: turn off HDCP in Settings > System > HDMI.
 - Nintendo Switch: docked mode only.

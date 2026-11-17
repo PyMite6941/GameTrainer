@@ -6,7 +6,7 @@ splitter in front of it:
 
     console HDMI Out -> splitter In
     splitter Out 1 -> TV                  (you play on this)
-    splitter Out 2 -> capture stick -> laptop USB
+    splitter Out 2 -> capture stick -> host USB (Pi / laptop / desktop)
 
 A splitter needs no driver and no GameTrainer setting - the capture stick is
 the device GameTrainer opens. What matters is buying the right splitter.
@@ -31,7 +31,7 @@ def splitter_text() -> str:
         "HDMI splitter setup:",
         "  1. Console HDMI Out -> splitter In",
         "  2. Splitter Out 1 -> TV (you play on this)",
-        "  3. Splitter Out 2 -> capture stick -> laptop USB",
+        "  3. Splitter Out 2 -> capture stick -> host USB (Pi / laptop / desktop)",
     ]
     lines += [f"  - {item}" for item in CHECKLIST]
     return "\n".join(lines)

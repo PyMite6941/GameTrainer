@@ -40,6 +40,15 @@ def run_checks(probe_devices: bool = True, data_dir: str = "./data") -> List[Che
     out: List[Check] = []
     add = lambda *a: out.append(Check(*a))  # noqa: E731
 
+    # The host device: the Pi / laptop / desktop the console plugs into
+    try:
+        from hardware_tools.host import host_checks
+
+        for row in host_checks():
+            add(*row)
+    except Exception as e:  # never let host probing break the check
+        add("INFO", "Host device", f"could not inspect ({e})")
+
     # Python and packages
     v = sys.version_info
     add("OK" if v >= (3, 9) else "FAIL", "Python", f"{v.major}.{v.minor}.{v.micro}" + ("" if v >= (3, 9) else " (3.9+ required)"))
@@ -123,8 +132,8 @@ def run_checks(probe_devices: bool = True, data_dir: str = "./data") -> List[Che
             "found" if shutil.which("v4l2-ctl") else "not installed (optional) - sudo apt install v4l-utils lists card modes")
 
     has_display = sys.platform in ("win32", "darwin") or bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
-    add("OK" if has_display else "INFO", "Display", "available for the replay viewer and --preview" if has_display
-        else "none - tracking works; open replays on a machine with a screen")
+    add("OK" if has_display else "INFO", "Desktop session", "available for monitor mode, the replay viewer and --preview"
+        if has_display else "none - tracking works; monitor mode and replays need the host's desktop (or another computer)")
 
     # Capture hardware
     if probe_devices:
