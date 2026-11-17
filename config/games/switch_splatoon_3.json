@@ -1,0 +1,75 @@
+{
+  "name": "Splatoon 3",
+  "console": "nintendo_switch",
+  "kind": "shooter",
+  "aliases": [
+    "splatoon"
+  ],
+  "description": "Team shooter: track your Inkling and the enemy team by ink color, read the match timer.",
+  "capture": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "downscale_width": 1280,
+    "process_every_n_frames": 2,
+    "detect_scale": 0.5,
+    "color_space": "BGR",
+    "roi": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "ocr_every_n_frames": 15
+  },
+  "entities": [
+    {
+      "name": "player",
+      "method": "color",
+      "player_id": "p1",
+      "primary": true,
+      "color_bgr": [
+        200,
+        80,
+        0
+      ],
+      "min_area": 150,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "skin"
+    },
+    {
+      "name": "enemy_team",
+      "method": "color",
+      "player_id": "p2",
+      "primary": false,
+      "color_bgr": [
+        0,
+        140,
+        255
+      ],
+      "min_area": 150,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "skin"
+    }
+  ],
+  "templates": [],
+  "hud_zones": [
+    {
+      "name": "timer",
+      "entity": "timer",
+      "bbox": [
+        590,
+        10,
+        690,
+        50
+      ],
+      "label": "match time left"
+    }
+  ],
+  "notes": "Ink colors change every match: recalibrate p1 (your team color) and p2 (enemy color) at the start of each battle. Turf coverage is approximated by screen coverage. Colors and HUD boxes are starting points: run `gametrainer splatoon --calibrate` and click each player to set the real colors for your match."
+}

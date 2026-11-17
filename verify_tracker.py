@@ -16,7 +16,9 @@ Generates a synthetic match (green player, red opponent, orange sprite), then ch
      capture-mode parsing, wiring notes, system check
   10. setup helpers: host device, --new-game, saving calibrated colors (copies of
      bundled profiles go to ./config), saving the device index, setup wizard
- 11. the existing analyzer and player profiler still read the database
+ 11. bundled games and consoles: every profile loads, short names resolve, wiring for each console
+ 12. the dashboard server: pages, match history, stats vs career, replay API, bad paths refused
+ 13. the existing analyzer and player profiler still read the database
 
 Run:  python verify_tracker.py         (exit code 0 = all checks passed)
 """
@@ -302,6 +304,67 @@ def main() -> int:
     with redirect_stdout(buf):
         code = run_wizard(str(tmp / "wizard"))
     check("setup wizard falls back to a guide without a terminal", code == 0 and "--calibrate" in buf.getvalue())
+
+    print("\nGames and consoles")
+    from hardware_tools.adapters.hdmi_adapter import list_consoles, wiring_text
+
+    bad_profiles = []
+    for prof_path in si.list_profiles():
+        try:
+            GameProfile(prof_path)
+        except Exception as e:  # noqa: BLE001 - report every broken profile
+            bad_profiles.append(f"{prof_path.name}: {e}")
+    check("every bundled game profile loads", len(si.list_profiles()) >= 10 and not bad_profiles,
+          f"{len(si.list_profiles())} profiles" + (f"; {bad_profiles}" if bad_profiles else ""))
+    aliases = {"smash": "switch_smash_bros_ultimate", "kart": "switch_mario_kart_8_deluxe", "mkw": "switch2_mario_kart_world",
+               "sf6": "street_fighter_6", "rl": "rocket_league", "splatoon": "switch_splatoon_3"}
+    resolved = {a: (si.resolve_profile(a) or Path("none")).stem for a in aliases}
+    check("short game names resolve without clashes", resolved == aliases, str(resolved))
+    consoles = list_consoles()
+    check("consoles listed with wiring", len(consoles) >= 12 and all("- HDCP:" in wiring_text(c["key"]) for c in consoles),
+          f"{len(consoles)} consoles")
+    check("console short names map correctly", console_setup("switch2")["name"].startswith("Nintendo Switch 2")
+          and "adapter" in console_setup("gamecube")["chain"][0] and console_setup("deck")["family"] == "pc")
+
+    print("\nDashboard server")
+    import urllib.error
+    import urllib.request
+
+    from middleware.server.app import serve_in_background
+
+    httpd, _ = serve_in_background(data_dir=str(db.parent), host="127.0.0.1", port=0, version="verify")
+    base = f"http://127.0.0.1:{httpd.server_address[1]}"
+
+    def get(path):
+        try:
+            with urllib.request.urlopen(base + path, timeout=30) as r:
+                return r.status, r.read()
+        except urllib.error.HTTPError as e:
+            return e.code, e.read()
+
+    try:
+        code, body = get("/")
+        check("dashboard page is served", code == 200 and b"GameTrainer" in body)
+        code, body = get("/api/sessions")
+        listed = [s["session_id"] for s in json.loads(body)["sessions"]]
+        check("match history lists every session, newest first", listed == [tr2.session_id, tr1.session_id], str(listed))
+        code, body = get(f"/api/sessions/{tr1.session_id}")
+        summ = json.loads(body)
+        check("match page: players, stats and delta vs career", code == 200 and set(summ["players"]) == {"p1", "p2"}
+              and summ["players"]["p1"]["career_matches"] == 2 and "avg_speed_px_s" in summ["players"]["p1"]["vs_average"])
+        code, body = get(f"/api/sessions/{tr1.session_id}/replay")
+        check("browser replay gets the full timeline", code == 200 and len(json.loads(body)["timeline"]) == FRAMES)
+        code, body = get("/api/career")
+        car = {p["player_id"]: p for p in json.loads(body)["players"]}
+        check("career averages over both matches", car.get("p1", {}).get("matches") == 2 and len(car["p1"]["trend"]) == 2)
+        codes = [get(p)[0] for p in ("/api/sessions/..%2F..%2Fetc%2Fpasswd", "/api/sessions/nope", "/etc/passwd", "/api/nope")]
+        check("unknown sessions and paths are refused", codes == [404, 404, 404, 404], str(codes))
+        code, body = get("/api/games")
+        check("games and consoles APIs", code == 200 and len(json.loads(body)["games"]) >= 10
+              and len(json.loads(get("/api/consoles")[1])["consoles"]) >= 12)
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
 
     print("\nAnalyzer / profiler")
     try:

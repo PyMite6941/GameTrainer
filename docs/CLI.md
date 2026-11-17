@@ -5,7 +5,7 @@ program. What it does depends on the argument you pass:
 
 | You pass | It does |
 |---|---|
-| nothing | lists the game profiles |
+| nothing | lists the game profiles and their short names |
 | a game profile (path, filename, or short name such as `smash`) | tracks live from the capture device |
 | a replay file (any `.json` with a top-level `timeline`) | opens the replay viewer |
 | `--build-replay` and no profile | builds a replay from an existing database |
@@ -16,10 +16,11 @@ program. What it does depends on the argument you pass:
 gametrainer                                   # list profiles
 gametrainer --setup                           # guided first-time setup
 gametrainer --check                           # is this host ready to track?
-gametrainer --wiring ps5                      # how to connect a console (switch, ps5, ps4, xbox)
+gametrainer --wiring ps5                      # how to connect a console (switch2, switch, ps5, xbox, deck, pc ...)
+gametrainer --consoles                        # every supported console
 gametrainer --list-devices --save             # find the capture card and save its index
-gametrainer --new-game "Rocket League" --kind racer --players 2
-gametrainer rocket_league --calibrate         # click a player, press their number: color saved
+gametrainer --new-game "Brawlhalla" --kind fighter --players 2
+gametrainer brawlhalla --calibrate            # click a player, press their number: color saved
 gametrainer smash --pick 640,360 --set p1 --image shot.png   # same, without a screen
 
 gametrainer smash --device 0                  # track Smash Bros. (passthrough: TV on the card)
@@ -35,6 +36,10 @@ gametrainer --build-replay --session 20261109-120844-e37b0e
 gametrainer ./data/replays/replay.json        # view a replay
 
 gametrainer smash --synthetic --build-replay  # try it with no console: generated test match
+
+gametrainer --serve                           # dashboard for phones/laptops on your network
+gametrainer sf6 --serve --build-replay        # track Street Fighter 6 and serve, live
+gametrainer --install-service                 # Linux/Pi: serve the dashboard on every boot
 ```
 
 ## Options
@@ -46,13 +51,23 @@ gametrainer smash --synthetic --build-replay  # try it with no console: generate
 | `--setup` | Guided setup: host check → console and wiring → capture card → game (or new game) → colors → 10-second test. Re-run any time |
 | `--check` | System check: host device (model, USB 3, screen, Pi power), packages, configs, profiles, permissions, capture card, USB link, best capture mode |
 | `--new-game NAME` | Create `config/games/<name>.json`. With `--kind fighter\|racer\|shooter\|any`, `--players N` (default 2), `--console` |
-| `--wiring CONSOLE` | Wiring, HDCP, and output settings for `switch`, `ps5`, `ps4`, `xbox`, `xb1`, or `generic`, plus the splitter alternative |
+| `--wiring CONSOLE` | Wiring, HDCP, and output settings for a console (`switch2`, `switch`, `ps5`, `ps4`, `ps3`, `xbox`, `xb1`, `360`, `wiiu`, `wii`, `gamecube`, `deck`, `pc`, `generic` ...), plus the splitter alternative |
+| `--consoles` | Every supported console and its short names |
 | `--list-devices` | Probe video indexes 0–9: name, resolution, delivering frames, USB 2/3 |
 | `--save` | With `--list-devices`: write the capture card's index to `./config/device_config.json` |
 | `--calibrate` | Window with the live picture (or `--image`). **Space** freezes it, **click** a player, press their **number** to save the color into the profile; circles show what is detected now. `s` saves a frame, `q` quits. Without a display it saves `data/calibration.png` and explains `--pick` |
 | `--pick X,Y` | The color at pixel X,Y of `--image` (or a frame from the capture device) |
 | `--set PLAYER` | With `<game> --pick`: save that color into the player (`p1`, entity name, or number) |
 | `--image PATH` | Screenshot for `--pick` / `--calibrate`, scaled to 1280 wide like the tracker |
+
+### Dashboard
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--serve` | | Serve the read-only dashboard ([DASHBOARD.md](DASHBOARD.md)). With a game, track and serve at the same time |
+| `--host` | `0.0.0.0` | Listen address: `0.0.0.0` = your network, `127.0.0.1` = this computer only |
+| `--port` | `8765` | Dashboard port |
+| `--install-service` | | Linux: write a systemd user service that serves the dashboard on boot, and print how to enable it |
 
 ### Tracking and replays
 
@@ -101,7 +116,7 @@ to where you run it. Files there override the bundled files with the same name.
 python verify_tracker.py
 ```
 
-This runs 50 end-to-end checks on a generated match:
+This runs 61 end-to-end checks on a generated match:
 - tracking accuracy against the true positions, and players never swapped
 - car/skin colors
 - separate sessions, replay contents, and stats
@@ -110,6 +125,8 @@ This runs 50 end-to-end checks on a generated match:
 - the CLI
 - every middleware module
 - the setup helpers (new game, saving colors, device index, wizard)
+- every bundled game profile, short names, and console wiring
+- the dashboard server: pages, match history, stats vs career, replay API, refused paths
 - the analyzer and profiler
 
 It works in a temporary folder, and exit code 0 means everything passed. `./run_tests.sh`

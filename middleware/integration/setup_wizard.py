@@ -22,11 +22,15 @@ from typing import Callable, List, Optional, Sequence, Tuple
 
 CONSOLES: List[Tuple[str, str]] = [
     ("switch", "Nintendo Switch"),
+    ("switch2", "Nintendo Switch 2"),
     ("ps5", "PlayStation 5"),
     ("ps4", "PlayStation 4"),
     ("xbox", "Xbox Series X|S"),
     ("xb1", "Xbox One"),
-    ("generic", "Something else (PC, other console)"),
+    ("deck", "Steam Deck / PC handheld"),
+    ("pc", "Gaming PC"),
+    ("retro", "Retro console without HDMI (GameCube, N64, PS2 ...)"),
+    ("generic", "Something else"),
 ]
 
 

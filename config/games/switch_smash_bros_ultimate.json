@@ -1,6 +1,11 @@
 {
   "name": "Super Smash Bros. Ultimate",
   "console": "nintendo_switch",
+  "kind": "fighter",
+  "aliases": [
+    "smash",
+    "ssbu"
+  ],
   "description": "Platform fighter: track both players by color and read damage % from the HUD.",
   "capture": {
     "resolution": [

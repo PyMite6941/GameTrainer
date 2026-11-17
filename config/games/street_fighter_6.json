@@ -1,0 +1,75 @@
+{
+  "name": "Street Fighter 6",
+  "console": "generic",
+  "kind": "fighter",
+  "aliases": [
+    "sf6"
+  ],
+  "description": "2D fighter (PS5, PS4, Xbox Series, PC): track both fighters by outfit color and read the round timer.",
+  "capture": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "downscale_width": 1280,
+    "process_every_n_frames": 2,
+    "detect_scale": 0.5,
+    "color_space": "BGR",
+    "roi": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "ocr_every_n_frames": 15
+  },
+  "entities": [
+    {
+      "name": "player_1",
+      "method": "color",
+      "player_id": "p1",
+      "primary": true,
+      "color_bgr": [
+        0,
+        0,
+        200
+      ],
+      "min_area": 200,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "skin"
+    },
+    {
+      "name": "player_2",
+      "method": "color",
+      "player_id": "p2",
+      "primary": false,
+      "color_bgr": [
+        200,
+        80,
+        0
+      ],
+      "min_area": 200,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "skin"
+    }
+  ],
+  "templates": [],
+  "hud_zones": [
+    {
+      "name": "timer",
+      "entity": "timer",
+      "bbox": [
+        600,
+        30,
+        680,
+        90
+      ],
+      "label": "round timer"
+    }
+  ],
+  "notes": "Pick outfits with clearly different main colors (or alternate colors for a mirror match). Spacing stats (opponent distance, close quarters) map directly to neutral and pressure. Colors and HUD boxes are starting points: run `gametrainer sf6 --calibrate` and click each player to set the real colors for your match."
+}

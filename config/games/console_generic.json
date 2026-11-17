@@ -1,6 +1,11 @@
 {
   "name": "Generic Console Game",
   "console": "generic",
+  "kind": "any",
+  "aliases": [
+    "generic",
+    "any"
+  ],
   "description": "Fallback profile for any console game: tracks the largest moving object in the center of the screen. Use when no game-specific profile exists yet.",
   "capture": {
     "resolution": [

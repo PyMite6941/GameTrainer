@@ -1,0 +1,106 @@
+{
+  "name": "Rocket League",
+  "console": "generic",
+  "kind": "racer",
+  "aliases": [
+    "rl",
+    "rocket"
+  ],
+  "description": "Car soccer (Switch, PlayStation, Xbox, PC): track the blue and orange cars and the ball.",
+  "capture": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "downscale_width": 1280,
+    "process_every_n_frames": 2,
+    "detect_scale": 0.5,
+    "color_space": "BGR",
+    "roi": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "ocr_every_n_frames": 15
+  },
+  "entities": [
+    {
+      "name": "blue_car",
+      "method": "color",
+      "player_id": "p1",
+      "primary": true,
+      "color_bgr": [
+        220,
+        110,
+        20
+      ],
+      "min_area": 100,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "car"
+    },
+    {
+      "name": "orange_car",
+      "method": "color",
+      "player_id": "p2",
+      "primary": false,
+      "color_bgr": [
+        0,
+        120,
+        255
+      ],
+      "min_area": 100,
+      "min_sat": 60,
+      "min_val": 50,
+      "hue_tolerance": 12,
+      "appearance": "car"
+    },
+    {
+      "name": "ball",
+      "method": "motion",
+      "player_id": "ball",
+      "primary": false,
+      "min_area": 80,
+      "appearance": "skin"
+    }
+  ],
+  "templates": [],
+  "hud_zones": [
+    {
+      "name": "score_blue",
+      "entity": "score_blue",
+      "bbox": [
+        540,
+        10,
+        600,
+        50
+      ],
+      "label": "blue score"
+    },
+    {
+      "name": "timer",
+      "entity": "timer",
+      "bbox": [
+        605,
+        10,
+        675,
+        50
+      ],
+      "label": "match clock"
+    },
+    {
+      "name": "score_orange",
+      "entity": "score_orange",
+      "bbox": [
+        680,
+        10,
+        740,
+        50
+      ],
+      "label": "orange score"
+    }
+  ],
+  "notes": "Works on every console version. Use ball cam on and a fixed camera setting so positions are comparable between matches. Colors and HUD boxes are starting points: run `gametrainer rl --calibrate` and click each player to set the real colors for your match."
+}

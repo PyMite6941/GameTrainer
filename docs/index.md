@@ -1,8 +1,8 @@
 # GameTrainer
 
 GameTrainer tracks your console games and lets you review them like Leetify does for CS2:
-replays and stats built from **data points, not video**. It works with Switch, PlayStation, and
-Xbox, and runs on a **Raspberry Pi, laptop, or desktop** with no GPU.
+replays and stats built from **data points, not video**. It works with Switch 2, Switch, PlayStation,
+Xbox, Steam Deck, PC, and older consoles, and runs on a **Raspberry Pi, laptop, or desktop** with no GPU.
 
 Leetify coaches CS2 players by parsing demo files. Consoles don't produce demo files, so
 GameTrainer watches the console's HDMI picture through a capture card. It records where each
@@ -44,16 +44,31 @@ whole flow on a generated test match.
 - [Command reference](CLI.md): every command and option
 - [Game tracking](GAME_TRACKING.md): how tracking works; adding and tuning a game
 - [Replays and stats](REPLAY.md): the viewer, the stats, the replay format
+- [**Dashboard**](DASHBOARD.md): match history, replays, and career stats in any browser, served by the host
 - [Middleware](MIDDLEWARE.md): how the pieces fit together, and the Python API
 - [Desktop binary](BINARY_INSTALL.md): build and share `dist/gametrainer`
 
 ## Supported out of the box
 
-| Short name | Game |
-|---|---|
-| `smash` | Super Smash Bros. Ultimate (Switch) |
-| `kart` | Mario Kart 8 Deluxe (Switch) |
-| `console_generic` | Any game: tracks whatever moves |
+| Short name | Game | Console |
+|---|---|---|
+| `smash` | Super Smash Bros. Ultimate | Switch / Switch 2 |
+| `kart` | Mario Kart 8 Deluxe | Switch / Switch 2 |
+| `mkw` | Mario Kart World | Switch 2 |
+| `splatoon` | Splatoon 3 | Switch / Switch 2 |
+| `party` | Super Mario Party Jamboree (minigames) | Switch / Switch 2 |
+| `rl` | Rocket League | Switch, PlayStation, Xbox, PC |
+| `sf6` | Street Fighter 6 | PS5, PS4, Xbox Series, PC |
+| `tekken` | Tekken 8 | PS5, Xbox Series, PC |
+| `gt7` | Gran Turismo 7 | PS5, PS4 |
+| `fh5` | Forza Horizon 5 | Xbox Series, Xbox One, PC |
+| `generic` | Any game: tracks whatever moves | any |
+
+Colors and HUD boxes in the bundled profiles are starting points: run
+`gametrainer <short name> --calibrate` once to set them for your match.
+
+After a match, `gametrainer --serve` shows your history on any phone or laptop on your network.
+`gametrainer --consoles` lists every supported console.
 
 Any other game: `gametrainer --new-game "Name" --kind fighter|racer|shooter|any`, then
 `--calibrate`. No code or JSON editing is needed.
