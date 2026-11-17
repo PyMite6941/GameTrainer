@@ -116,7 +116,7 @@ to where you run it. Files there override the bundled files with the same name.
 python verify_tracker.py
 ```
 
-This runs 61 end-to-end checks on a generated match:
+This runs 62 end-to-end checks on a generated match:
 - tracking accuracy against the true positions, and players never swapped
 - car/skin colors
 - separate sessions, replay contents, and stats

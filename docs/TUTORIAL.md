@@ -20,7 +20,7 @@ python3 install_middleware.py
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 ```
 
-The installer finishes with `61/61 checks passed` and a list of next steps. If it prints
+The installer finishes with `62/62 checks passed` and a list of next steps. If it prints
 commands with `sudo`, run them; they need admin rights, so it leaves them to you.
 
 ### 2. Track a generated test match

@@ -64,11 +64,12 @@ def _header(n: int, total: int, title: str) -> None:
 def print_guide() -> None:
     print("GameTrainer setup needs an interactive terminal. The same steps by hand:")
     print("  1. gametrainer --check                      (this computer: ports, power, packages)")
-    print("  2. gametrainer --wiring switch              (or ps5, ps4, xbox)")
+    print("  2. gametrainer --wiring switch              (gametrainer --consoles lists every console)")
     print("  3. gametrainer --list-devices --save        (find the capture card)")
     print("  4. gametrainer --new-game \"My Game\" --kind fighter   (or use an existing profile)")
     print("  5. gametrainer <game> --calibrate           (click a player, press their number)")
     print("  6. gametrainer <game> --seconds 10 --preview")
+    print("  7. gametrainer --serve                      (match history on your phone/laptop)")
 
 
 def run_wizard(output: str = "./data", calibrate: Optional[Callable[[str], int]] = None) -> int:
@@ -222,4 +223,5 @@ def run_wizard(output: str = "./data", calibrate: Optional[Callable[[str], int]]
     print("\nAll set. To play and review a match:")
     print(f"  {play}")
     print("Stop with Ctrl+C (or q on the monitor screen) when the match ends.")
+    print("Review on your phone or laptop: gametrainer --serve   (on every boot: gametrainer --install-service)")
     return 0

@@ -67,6 +67,22 @@ def is_replay_file(path: str) -> bool:
     return isinstance(data, dict) and "timeline" in data
 
 
+def profile_not_found(target: str) -> None:
+    """Explain why a game name didn't resolve: ambiguous, or unknown."""
+    from middleware.integration.system_integration import profile_aliases
+
+    profiles = list_profiles()
+    similar = [p for p in profiles if target.lower() in p.stem.lower()]
+    if len(similar) > 1:
+        print(f"'{target}' matches several games: " + ", ".join(
+            f"{(profile_aliases(p) or [p.stem])[0]} ({p.stem})" for p in similar))
+        print("Use one of the short names above.")
+        return
+    print(f"Profile not found: {target}")
+    print("Games: " + ", ".join((profile_aliases(p) or [p.stem])[0] for p in profiles)
+          + "   (gametrainer with no arguments lists them; --new-game adds one)")
+
+
 def has_display() -> bool:
     if sys.platform.startswith("linux"):
         return bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
@@ -107,9 +123,13 @@ def cmd_list_devices(save: bool) -> int:
 
 
 def cmd_wiring(console: str) -> int:
-    from hardware_tools.adapters.hdmi_adapter import wiring_text
+    from hardware_tools.adapters.hdmi_adapter import ALIASES, CONSOLES, wiring_text
     from hardware_tools.drivers.splitter_driver import splitter_text
 
+    key = (console or "").lower().replace(" ", "_").replace("-", "_")
+    if key not in CONSOLES and key not in ALIASES:
+        print(f"Unknown console '{console}' - showing the general HDMI steps. "
+              "See every console and its short name with: gametrainer --consoles\n")
     print(wiring_text(console))
     print("\nNo HDMI Out on your capture device?\n" + splitter_text())
     return 0
@@ -201,7 +221,7 @@ def cmd_pick(args, cfg) -> int:
             return 1
         profile_path = resolve_profile(args.target)
         if profile_path is None:
-            print(f"Profile not found: {args.target}")
+            profile_not_found(args.target)
             return 1
         try:
             out = set_entity_color(profile_path, args.set, c["color_bgr"])
@@ -444,6 +464,19 @@ def build_parser() -> argparse.ArgumentParser:
 
 # --------------------------------------------------------------------- main
 def main(argv: Optional[List[str]] = None) -> int:
+    try:
+        return _main(argv)
+    except BrokenPipeError:
+        # Output piped into `head` etc. was closed early: stop quietly, no traceback.
+        try:
+            devnull = os.open(os.devnull, os.O_WRONLY)
+            os.dup2(devnull, sys.stdout.fileno())
+        except (OSError, ValueError, AttributeError):
+            pass
+        return 0
+
+
+def _main(argv: Optional[List[str]] = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         sys.stdout.reconfigure(line_buffering=True)  # progress lines appear immediately
@@ -491,7 +524,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         return cmd_pick(args, cfg)
     if args.calibrate:
         if args.target and resolve_profile(args.target) is None:
-            print(f"Profile not found: {args.target}")
+            profile_not_found(args.target)
             return 1
         return cmd_calibrate(args, cfg)
 
@@ -564,8 +597,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     profile_path = resolve_profile(args.target)
     if profile_path is None:
-        print(f"Profile not found: {args.target}")
-        print("Available: " + ", ".join(p.stem for p in list_profiles()))
+        profile_not_found(args.target)
         return 1
 
     if args.synthetic and args.device is None:
